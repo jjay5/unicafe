@@ -34,4 +34,15 @@ class Customer {
       role: data['role'] ?? 'customer',
     );
   }
+
+  static Customer fromMap(Map<String, dynamic> map) {
+    return Customer(
+      id: map['id'] ?? '', // Assuming 'id' might be part of the map, provide a fallback if it's not.
+      name: map['name'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
+      phone: map['phone'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
+      email: map['email'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
+      role: map['role'] ?? 'customer', // Provide a default role if not specified in the map.
+    );
+  }
+
 }

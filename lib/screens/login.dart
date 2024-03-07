@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unicafe/main.dart';
+import 'package:unicafe/screens/customer/update_customer.dart';
 import 'package:unicafe/services/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
@@ -42,7 +43,7 @@ class LoginPage extends StatelessWidget {
                   // Navigate to the HomePage if login is successful
                   Navigator.pushReplacement( // or Navigator.push for non-replacement
                     context,
-                    MaterialPageRoute(builder: (context) => const MyHomePage()),
+                    MaterialPageRoute(builder: (context) => UpdateCustomerPage()),
                   );
                 } else {
                   // Display error message if login fails
