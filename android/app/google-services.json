@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "847634206734",
+    "project_id": "unicafe-9b1e8",
+    "storage_bucket": "unicafe-9b1e8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:847634206734:android:01dc7dc4220e70bd68ac5f",
+        "android_client_info": {
+          "package_name": "com.google.firebase.presents.unicafe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB6tbC8r_IRSXr2O-Y5g1-P3ckx7buD3A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
