@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:unicafe/screens/seller/signup_seller.dart';
 import 'package:unicafe/services/firebase_options.dart';
 import 'package:unicafe/screens/login.dart';
 import 'package:unicafe/screens/customer/signup_customer.dart';
@@ -46,6 +47,16 @@ class MyHomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SignUpCustomerPage()), // Ensure this matches your sign-up page class name
+                );
+              },
+            ),
+            const SizedBox(height: 20), // Add some space between the buttons
+            ElevatedButton(
+              child: const Text('Go to Seller Sign Up'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpSellerPage()), // Ensure this matches your login page class name
                 );
               },
             ),
