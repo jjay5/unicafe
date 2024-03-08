@@ -44,5 +44,4 @@ class Customer {
       role: map['role'] ?? 'customer', // Provide a default role if not specified in the map.
     );
   }
-
 }

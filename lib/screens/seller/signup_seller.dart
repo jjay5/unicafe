@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/seller.dart';
 
 class SignUpSellerPage extends StatelessWidget {
-  final TextEditingController _stallnameController = TextEditingController();
-  final TextEditingController _stalllocationController = TextEditingController();
+  final TextEditingController _stallNameController = TextEditingController();
+  final TextEditingController _stallLocationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -27,11 +27,11 @@ class SignUpSellerPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             TextField(
-              controller: _stallnameController,
+              controller: _stallNameController,
               decoration: const InputDecoration(labelText: 'Stall Name'),
             ),
             TextField(
-              controller: _stalllocationController,
+              controller: _stallLocationController,
               decoration: const InputDecoration(labelText: 'Stall Location'),
             ),
             TextField(
@@ -59,8 +59,8 @@ class SignUpSellerPage extends StatelessWidget {
                 // Create a Customer instance
                 Seller newSeller = Seller(
                   id: userCredential.user!.uid, // Firestore generates the UID
-                  stall_name: _stallnameController.text.trim(),
-                  stall_location: _stalllocationController.text.trim(),
+                  stallName: _stallNameController.text.trim(),
+                  stallLocation: _stallLocationController.text.trim(),
                   phone: _phoneController.text.trim(),
                   email: _emailController.text.trim(),
                 );

@@ -2,16 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Seller {
   final String id;
-  final String stall_name;
-  final String stall_location;
+  final String stallName;
+  final String stallLocation;
   final String phone;
   final String email;
   final String role;
 
   Seller({
     required this.id,
-    required this.stall_name,
-    required this.stall_location,
+    required this.stallName,
+    required this.stallLocation,
     required this.phone,
     required this.email,
     this.role = 'seller',
@@ -19,8 +19,8 @@ class Seller {
 
   Map<String, dynamic> toMap() {
     return {
-      'stall_name': stall_name,
-      'stall location': stall_location,
+      'stallName': stallName,
+      'stallLocation': stallLocation,
       'phone': phone,
       'email': email,
       'role': role,
@@ -31,11 +31,23 @@ class Seller {
     Map data = doc.data() as Map<String, dynamic>;
     return Seller(
       id: doc.id,
-      stall_name: data['stall_name'] ?? '',
-      stall_location: data['stall_location' ?? ''],
+      stallName: data['stallName'] ?? '',
+      stallLocation: data['stallLocation'] ?? '',
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
       role: data['role'] ?? 'seller',
     );
   }
+
+  static Seller fromMap(Map<String, dynamic> map) {
+    return Seller(
+      id: map['id'] ?? '',
+      stallName: map['stallName'] ?? '',
+      stallLocation: map['stallLocation'] ?? '',
+      phone: map['phone'] ?? '',
+      email: map['email'] ?? '',
+      role: map['role'] ?? 'seller',
+    );
+  }
 }
+

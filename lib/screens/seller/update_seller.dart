@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unicafe/models/customer.dart';
+import 'package:unicafe/models/seller.dart';
 
-class UpdateCustomerPage extends StatefulWidget {
-  const UpdateCustomerPage({super.key});
+class UpdateSellerPage extends StatefulWidget {
+  const UpdateSellerPage({super.key});
 
   @override
-  UpdateCustomerPageState createState() => UpdateCustomerPageState();
+  UpdateSellerPageState createState() => UpdateSellerPageState();
 }
 
-class UpdateCustomerPageState extends State<UpdateCustomerPage> {
-  final TextEditingController _nameController = TextEditingController();
+class UpdateSellerPageState extends State<UpdateSellerPage> {
+  final TextEditingController _stallNameController = TextEditingController();
+  final TextEditingController _stallLocationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   bool _isLoading = false;
 
   @override
@@ -30,11 +30,12 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
     setState(() => _isLoading = true);
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
-      var customerSnapshot = await _firestore.collection('customer').doc(currentUser.uid).get();
-      Customer currentCustomer = Customer.fromMap(customerSnapshot.data()!);
-      _nameController.text = currentCustomer.name;
-      _phoneController.text = currentCustomer.phone;
-      _emailController.text = currentCustomer.email;
+      var customerSnapshot = await _firestore.collection('seller').doc(currentUser.uid).get();
+      Seller currentSeller = Seller.fromMap(customerSnapshot.data()!);
+      _stallNameController.text = currentSeller.stallName;
+      _stallLocationController.text = currentSeller.stallLocation;
+      _phoneController.text = currentSeller.phone;
+      _emailController.text = currentSeller.email;
     }
     setState(() => _isLoading = false);
   }
@@ -43,7 +44,7 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Update Customer Account'),
+        title: const Text('Update Seller Account'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -53,18 +54,21 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              controller: _stallNameController,
+              decoration: const InputDecoration(labelText: 'Stall Name'),
+            ),
+            TextField(
+              controller: _stallLocationController,
+              decoration: const InputDecoration(labelText: 'Stall Location'),
             ),
             TextField(
               controller: _phoneController,
               decoration: const InputDecoration(labelText: 'Phone Number'),
             ),
-            // Email is displayed for information only, assuming it cannot be changed here
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
-              enabled: false, // Make the email field read-only
+              enabled: false,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -72,8 +76,9 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
               onPressed: () async {
                 setState(() => _isLoading = true);
                 // Assuming you have a method in Customer model to convert object to Map
-                await _firestore.collection('customer').doc(_auth.currentUser!.uid).update({
-                  'name': _nameController.text.trim(),
+                await _firestore.collection('seller').doc(_auth.currentUser!.uid).update({
+                  'stallName': _stallNameController.text.trim(),
+                  'stallLocation': _stallLocationController.text.trim(),
                   'phone': _phoneController.text.trim(),
                   // Email is not updated as it's assumed to be unchanged
                 });
