@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unicafe/screens/seller/update_seller.dart';
+import 'package:unicafe/screens/seller/homepage_seller.dart';
 import 'package:unicafe/screens/customer/update_customer.dart';
 
 class LoginPage extends StatefulWidget {
@@ -66,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       if (role == 'customer') {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const UpdateCustomerPage()));
       } else if (role == 'seller') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const UpdateSellerPage()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SellerHomePage()));
       } else {
         // Handle unknown role
       }
