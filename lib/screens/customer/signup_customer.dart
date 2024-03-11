@@ -60,7 +60,7 @@ class SignUpCustomerPage extends StatelessWidget {
                 );
 
                 // Add the Customer details in Firestore
-                await _firestore.collection('customer').doc(userCredential.user!.uid).set(newCustomer.toMap());
+                await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
               },
             ),
           ],

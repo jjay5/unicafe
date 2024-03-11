@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class Customer {
   final String id;
@@ -37,11 +38,22 @@ class Customer {
 
   static Customer fromMap(Map<String, dynamic> map) {
     return Customer(
-      id: map['id'] ?? '', // Assuming 'id' might be part of the map, provide a fallback if it's not.
-      name: map['name'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
-      phone: map['phone'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
-      email: map['email'] ?? '', // Provide a fallback to ensure the constructor receives a non-null value.
-      role: map['role'] ?? 'customer', // Provide a default role if not specified in the map.
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      phone: map['phone'] ?? '',
+      email: map['email'] ?? '',
+      role: map['role'] ?? 'customer',
     );
+  }
+}
+
+class CustomerProvider extends ChangeNotifier {
+  Customer? _customer;
+
+  Customer? get customer => _customer;
+
+  void setCustomer(Customer customer) {
+    _customer = customer;
+    notifyListeners();
   }
 }

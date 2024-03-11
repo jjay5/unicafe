@@ -30,7 +30,7 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
     setState(() => _isLoading = true);
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
-      var customerSnapshot = await _firestore.collection('customer').doc(currentUser.uid).get();
+      var customerSnapshot = await _firestore.collection('customers').doc(currentUser.uid).get();
       Customer currentCustomer = Customer.fromMap(customerSnapshot.data()!);
       _nameController.text = currentCustomer.name;
       _phoneController.text = currentCustomer.phone;
@@ -72,7 +72,7 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
               onPressed: () async {
                 setState(() => _isLoading = true);
                 // Assuming you have a method in Customer model to convert object to Map
-                await _firestore.collection('customer').doc(_auth.currentUser!.uid).update({
+                await _firestore.collection('customers').doc(_auth.currentUser!.uid).update({
                   'name': _nameController.text.trim(),
                   'phone': _phoneController.text.trim(),
                   // Email is not updated as it's assumed to be unchanged

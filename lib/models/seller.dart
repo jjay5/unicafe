@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class Seller {
   final String id;
@@ -48,6 +49,17 @@ class Seller {
       email: map['email'] ?? '',
       role: map['role'] ?? 'seller',
     );
+  }
+}
+
+class SellerProvider extends ChangeNotifier {
+  Seller? _seller;
+
+  Seller? get seller => _seller;
+
+  void setSeller(Seller seller) {
+    _seller = seller;
+    notifyListeners();
   }
 }
 

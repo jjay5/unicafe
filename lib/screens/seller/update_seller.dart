@@ -30,7 +30,7 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
     setState(() => _isLoading = true);
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
-      var customerSnapshot = await _firestore.collection('seller').doc(currentUser.uid).get();
+      var customerSnapshot = await _firestore.collection('sellers').doc(currentUser.uid).get();
       Seller currentSeller = Seller.fromMap(customerSnapshot.data()!);
       _stallNameController.text = currentSeller.stallName;
       _stallLocationController.text = currentSeller.stallLocation;
@@ -75,8 +75,9 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
               child: const Text('Update'),
               onPressed: () async {
                 setState(() => _isLoading = true);
-                // Assuming you have a method in Customer model to convert object to Map
-                await _firestore.collection('seller').doc(_auth.currentUser!.uid).update({
+
+                // convert object to Map
+                await _firestore.collection('sellers').doc(_auth.currentUser!.uid).update({
                   'stallName': _stallNameController.text.trim(),
                   'stallLocation': _stallLocationController.text.trim(),
                   'phone': _phoneController.text.trim(),

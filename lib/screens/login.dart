@@ -1,17 +1,22 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/screens/seller/homepage_seller.dart';
-import 'package:unicafe/screens/customer/update_customer.dart';
+import 'package:unicafe/screens/customer/homepage_customer.dart';
+import 'package:provider/provider.dart';
+import 'package:unicafe/models/customer.dart';
+import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/services/user_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  LoginPageState createState() => LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -59,20 +64,46 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text.trim(),
       );
 
-      // Retrieve user role from Firestore
-      String role = await _getUserRole(userCredential.user!.uid);
+      final UserService userService = UserService();
 
-      // Navigate based on role
+      // Retrieve user role from Firestore
+      String role = await userService.getUserRole(userCredential.user!.uid);
+
       if (role == 'customer') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const UpdateCustomerPage()));
+        Customer? customer = await userService.fetchCustomerDetails(userCredential.user!.uid);
+        if (customer != null) {
+          // Set customer provider
+          Provider.of<CustomerProvider>(context, listen: false).setCustomer(customer);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => CustomerProfilePage()));
+        } else {
+          // Handle customer not found
+          if (kDebugMode) {
+            print('Customer details not found');
+          }
+        }
       } else if (role == 'seller') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SellerHomePage()));
+        Seller? seller = await userService.fetchSellerDetails(userCredential.user!.uid);
+        if (seller != null) {
+          // Set seller provider
+          Provider.of<SellerProvider>(context, listen: false).setSeller(seller);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SellerHomePage()));
+        } else {
+          // Handle seller not found
+          if (kDebugMode) {
+            print('Seller details not found');
+          }
+        }
       } else {
         // Handle unknown role
+        if (kDebugMode) {
+          print('Unknown role');
+        }
       }
     } catch (e) {
       // Handle login errors
-      print('Login Error: $e');
+      if (kDebugMode) {
+        print('Login Error: $e');
+      }
       // Show error message to the user
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Failed to login. Please check your credentials.'),
@@ -80,22 +111,5 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<String> _getUserRole(String userId) async {
-    try {
-      DocumentSnapshot userDoc = await _firestore.collection('customer').doc(userId).get();
-      if (userDoc.exists) {
-        return 'customer';
-      }
 
-      userDoc = await _firestore.collection('seller').doc(userId).get();
-      if (userDoc.exists) {
-        return 'seller';
-      }
-
-      return ''; // Unknown role
-    } catch (e) {
-      print('Error fetching user role: $e');
-      return ''; // Return empty string if an error occurs
-    }
-  }
 }
