@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unicafe/screens/seller/add_menu.dart';
 import 'package:unicafe/screens/seller/homepage_seller.dart';
 import 'package:unicafe/screens/customer/homepage_customer.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/screens/seller/menu_management.dart';
 import 'package:unicafe/services/user_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -74,7 +76,7 @@ class LoginPageState extends State<LoginPage> {
         if (customer != null) {
           // Set customer provider
           Provider.of<CustomerProvider>(context, listen: false).setCustomer(customer);
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => CustomerProfilePage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const CustomerProfilePage()));
         } else {
           // Handle customer not found
           if (kDebugMode) {
@@ -86,7 +88,7 @@ class LoginPageState extends State<LoginPage> {
         if (seller != null) {
           // Set seller provider
           Provider.of<SellerProvider>(context, listen: false).setSeller(seller);
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SellerHomePage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>  AddMenuItemPage()));
         } else {
           // Handle seller not found
           if (kDebugMode) {

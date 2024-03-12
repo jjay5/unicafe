@@ -7,6 +7,7 @@ import 'package:unicafe/screens/login.dart';
 import 'package:unicafe/screens/customer/signup_customer.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/models/menu_item.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => SellerProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
       child: const MyApp(),
     ),

@@ -1,37 +1,107 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
 class MenuItem {
-  String id;
-  String name;
-  String description;
-  double price;
-  bool availability;
+  final String? id;
+  final String sellerID;
+  final String itemPhoto;
+  final String itemName;
+  final String itemCategory;
+  final double price;
+  final String durationToCook;
+  final bool availability;
 
   MenuItem({
-    required this.id,
-    required this.name,
-    required this.description,
+    this.id,
+    required this.sellerID,
+    required this.itemPhoto,
+    required this.itemName,
+    required this.itemCategory,
     required this.price,
-    required this.availability,
+    required this.durationToCook,
+    this.availability = true,
   });
 
-  // Convert a MenuItem instance into a Map
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'description': description,
+      'sellerID': sellerID,
+      'itemPhoto': itemPhoto,
+      'itemName': itemName,
+      'itemCategory': itemCategory,
       'price': price,
-      'availability': availability,
+      'durationToCook' : durationToCook,
+      'availability' : availability
     };
   }
 
-  // Create a MenuItem instance from a map
+  factory MenuItem.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    return MenuItem(
+      id: doc.id,
+      sellerID: data['sellerID'] ?? '',
+      itemPhoto: data['itemPhoto'] ?? '',
+      itemName: data['itemName'] ?? '',
+      itemCategory: data['itemCategory'] ?? '',
+      price: (data['price'] ?? 0).toDouble(), // Convert to double
+      durationToCook: data['durationToCook'] ?? '',
+      availability: data['availability'] ?? true,
+    );
+  }
+
   static MenuItem fromMap(Map<String, dynamic> map) {
     return MenuItem(
-      id: map['id'],
-      name: map['name'],
-      description: map['description'],
-      price: map['price'],
-      availability: map['availability'],
+      id: map['id'] ?? '',
+      sellerID: map['sellerID'] ?? '',
+      itemPhoto: map['itemPhoto'] ?? '',
+      itemName: map['itemName'] ?? '',
+      itemCategory: map['itemCategory'] ?? '',
+      price: (map['price'] ?? 0).toDouble(), // Convert to double
+      durationToCook: map['durationToCook'] ?? '',
+      availability: map['availability'] ?? true,
     );
   }
 }
+
+class MenuProvider extends ChangeNotifier {
+  // Assuming you have a list to hold multiple menu items
+  List<MenuItem> _menuItems = [];
+
+  List<MenuItem> get menuItems => _menuItems;
+
+  // Adds or updates a menu item in the provider
+  void addOrUpdateMenuItem(MenuItem menuItem) {
+    int index = _menuItems.indexWhere((item) => item.id == menuItem.id);
+    if (index != -1) {
+      // Update
+      _menuItems[index] = menuItem;
+    } else {
+      // Add
+      _menuItems.add(menuItem);
+    }
+    notifyListeners();
+  }
+
+  // Updates the availability of a specific menu item
+  void setMenuItemAvailability(String menuItemId, bool isAvailable) {
+    int index = _menuItems.indexWhere((item) => item.id == menuItemId);
+    if (index != -1) {
+      _menuItems[index] = MenuItem(
+        id: _menuItems[index].id,
+        sellerID: _menuItems[index].sellerID,
+        itemPhoto: _menuItems[index].itemPhoto,
+        itemName: _menuItems[index].itemName,
+        itemCategory: _menuItems[index].itemCategory,
+        price: _menuItems[index].price,
+        durationToCook: _menuItems[index].durationToCook,
+        availability: isAvailable,
+      );
+      notifyListeners();
+    }
+  }
+}
+
+
+
+
+
+

@@ -1,57 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unicafe/models/menu_item.dart'; 
+import 'package:provider/provider.dart';
+import 'package:unicafe/models/menu_item.dart';
+import 'package:unicafe/models/seller.dart';
 
-class MenuListPage extends StatefulWidget {
+class MenuManagementPage extends StatefulWidget {
   @override
-  _MenuListPageState createState() => _MenuListPageState();
+  _MenuManagementPageState createState() => _MenuManagementPageState();
 }
 
-class _MenuListPageState extends State<MenuListPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  void _delistItem(String itemId) {
-    _firestore.collection('menuItems').doc(itemId).update({'availability': false});
-  }
-
+class _MenuManagementPageState extends State<MenuManagementPage> {
   @override
   Widget build(BuildContext context) {
+    final seller = Provider.of<SellerProvider>(context).seller;
+    final String? sellerID = seller?.id; // Get the current seller's ID
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Menu List"),
+        title: Text('Menu Management'),
       ),
-      body: StreamBuilder(
-        stream: _firestore.collection('menuItems').snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('menuItems')
+            .where('sellerID', isEqualTo: sellerID)
+            .where('availability', isEqualTo: true) // Only get available items
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          return ListView(
-            children: snapshot.data!.docs.map((document) {
-              MenuItem item = MenuItem.fromMap(document.data() as Map<String, dynamic>);
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final menuItems = snapshot.data!.docs
+              .map((doc) => MenuItem.fromFirestore(doc))
+              .toList();
+          return ListView.builder(
+            itemCount: menuItems.length,
+            itemBuilder: (context, index) {
+              final menuItem = menuItems[index];
               return ListTile(
-                title: Text(item.name),
-                subtitle: Text(item.description),
+                title: Text(menuItem.itemName),
+                subtitle: Text(menuItem.itemCategory),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
+                  children: [
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        // Navigate to edit item page
+                        // Implement edit functionality
                       },
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete_outline),
-                      onPressed: () => _delistItem(item.id),
+                    ElevatedButton(
+                      //icon: Icon(Icons.delete),
+                      onPressed: () async {
+                        await delistMenuItem(menuItem.id!);
+                        // No need to manually refresh, StreamBuilder will react to the data change
+                      },
+                      child: const Text('Delist'),
                     ),
                   ],
                 ),
               );
-            }).toList(),
+            },
           );
         },
       ),
     );
+  }
+
+  Future<void> delistMenuItem(String menuItemId) async {
+    try {
+      await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).update({'availability': false});
+      // The UI will automatically update due to the StreamBuilder reacting to the data change
+    } catch (e) {
+      print('Error delisting menu item: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error delisting menu item: $e'),
+      ));
+    }
   }
 }

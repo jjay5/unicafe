@@ -1,70 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:unicafe/models/menu_item.dart';
+import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/screens/seller/menu_management.dart';
 
-class AddMenuItemPage extends StatefulWidget {
-  @override
-  _AddMenuItemPageState createState() => _AddMenuItemPageState();
-}
+class AddMenuItemPage extends StatelessWidget {
+  final TextEditingController _itemPhotoController = TextEditingController();
+  final TextEditingController _itemNameController = TextEditingController();
+  final TextEditingController _itemCategoryController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _durationToCookController = TextEditingController();
 
-class _AddMenuItemPageState extends State<AddMenuItemPage> {
-  final _formKey = GlobalKey<FormState>();
-  String _name = '';
-  double _price = 0.0;
+//  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _addItem() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      FirebaseFirestore.instance.collection('menu').add({
-        'name': _name,
-        'price': _price,
-        'available': true,
-      });
-
-      Navigator.pop(context);
-    }
-  }
+  AddMenuItemPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    //Access Seller provider
+    final seller = Provider.of<SellerProvider>(context).seller;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Menu Item"),
+        title: const Text('Add Item'),
       ),
-      body: Form(
-        key: _formKey,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Name'),
-              onSaved: (value) {
-                _name = value!;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a name';
-                }
-                return null;
-              },
+            TextField(
+              controller: _itemPhotoController,
+              decoration: const InputDecoration(labelText: 'Item Photo'),
             ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.number,
-              onSaved: (value) {
-                _price = double.parse(value!);
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a price';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Please enter a valid number';
-                }
-                return null;
-              },
+            TextField(
+              controller: _itemNameController,
+              decoration: const InputDecoration(labelText: 'Item Name'),
             ),
+            TextField(
+              controller: _itemCategoryController,
+              decoration: const InputDecoration(labelText: 'Item Category'),
+            ),
+            TextField(
+              controller: _priceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Price'),
+            ),
+            TextField(
+              controller: _durationToCookController,
+              decoration: const InputDecoration(labelText: 'DurationToCook'),
+            ),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _addItem,
-              child: Text('Add Item'),
+              onPressed: seller == null ? null : () async {
+
+                // Create a Customer instance
+                MenuItem newMenuItem = MenuItem(
+                  id: null,
+                  sellerID: seller.id, // Use the seller ID from the provider
+                  itemPhoto: _itemPhotoController.text.trim(),
+                  itemName: _itemNameController.text.trim(),
+                  itemCategory: _itemCategoryController.text.trim(),
+                  price: double.parse(_priceController.text),
+                  durationToCook: _durationToCookController.text.trim(),
+                  availability: true,
+                );
+
+                // Add the MenuItem details in Firestore
+                //await _firestore.collection('menuItems').add(newMenuItem.toMap());
+                await _firestore.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
+                  // Recreating the MenuItem instance with Firestore generated ID
+                  newMenuItem = MenuItem(
+                    id: docRef.id, // Firestore generated ID
+                    sellerID: newMenuItem.sellerID,
+                    itemPhoto: newMenuItem.itemPhoto,
+                    itemName: newMenuItem.itemName,
+                    itemCategory: newMenuItem.itemCategory,
+                    price: newMenuItem.price,
+                    durationToCook: newMenuItem.durationToCook,
+                    availability: newMenuItem.availability,
+                  );
+
+                  // update MenuProvider to maintain a local cache/list
+                  Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
+                });
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MenuManagementPage()), // Ensure this matches your login page class name
+                );
+              },
+              child: const Text('Add Item'),
             ),
           ],
         ),

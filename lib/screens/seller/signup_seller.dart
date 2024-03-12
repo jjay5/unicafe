@@ -66,7 +66,7 @@ class SignUpSellerPage extends StatelessWidget {
                 );
 
                 // Add the Seller details in Firestore
-                await _firestore.collection('seller').doc(userCredential.user!.uid).set(newSeller.toMap());
+                await _firestore.collection('sellers').doc(userCredential.user!.uid).set(newSeller.toMap());
               },
             ),
           ],
