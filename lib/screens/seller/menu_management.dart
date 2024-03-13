@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/screens/seller/add_menu.dart';
 
 class MenuManagementPage extends StatefulWidget {
   @override
@@ -40,6 +41,31 @@ class _MenuManagementPageState extends State<MenuManagementPage> {
             itemBuilder: (context, index) {
               final menuItem = menuItems[index];
               return ListTile(
+                leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
+                    ? Container(
+                  width: 50.0, // Set your desired width
+                  height: 50.0, // Set your desired height to make it square
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
+                    image: DecorationImage(
+                      fit: BoxFit.cover, // This will fill the bounds of the container without changing the aspect ratio of the image
+                      image: NetworkImage(menuItem.itemPhoto!),
+                    ),
+                  ),
+                )
+                    : Container(
+                  width: 50.0,
+                  height: 50.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: NetworkImage('https://th.bing.com/th/id/OIP.DSvrEGChdMh67YH0GPo4TQAAAA?rs=1&pid=ImgDetMain'),
+                    ),
+                  ),
+                ),
+
+
                 title: Text(menuItem.itemName),
                 subtitle: Text(menuItem.itemCategory),
                 trailing: Row(
@@ -65,6 +91,17 @@ class _MenuManagementPageState extends State<MenuManagementPage> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Action to navigate to the add new item page
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddMenuItemPage()), // Adjust this to your actual "Add New Item" page
+          );
+        },
+        child: Icon(Icons.add),
+        tooltip: 'Add New Item',
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class MenuItem {
   final String? id;
   final String sellerID;
-  final String itemPhoto;
+  final String? itemPhoto; //Make itemPhoto nullable
   final String itemName;
   final String itemCategory;
   final double price;
@@ -14,7 +14,7 @@ class MenuItem {
   MenuItem({
     this.id,
     required this.sellerID,
-    required this.itemPhoto,
+    this.itemPhoto,
     required this.itemName,
     required this.itemCategory,
     required this.price,
@@ -99,9 +99,3 @@ class MenuProvider extends ChangeNotifier {
     }
   }
 }
-
-
-
-
-
-
