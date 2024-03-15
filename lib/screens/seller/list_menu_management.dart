@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/seller/add_menu.dart';
+import 'package:unicafe/screens/seller/update_menu.dart';
 
 class MenuListPage extends StatefulWidget {
   const MenuListPage({super.key});
@@ -76,7 +77,10 @@ class _MenuListPageState extends State<MenuListPage> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // Implement edit functionality
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UpdateMenuItemPage(menuItem: menuItem)),
+                        );
                       },
                     ),
                     ElevatedButton(

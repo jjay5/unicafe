@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/seller/add_menu.dart';
+import 'package:unicafe/screens/seller/update_menu.dart';
 
 class MenuDelistPage extends StatefulWidget {
   const MenuDelistPage({super.key});
@@ -76,7 +77,10 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // Implement edit functionality
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UpdateMenuItemPage(menuItem: menuItem)),
+                        );
                       },
                     ),
                     ElevatedButton(

@@ -76,7 +76,7 @@ class LoginPageState extends State<LoginPage> {
         if (customer != null) {
           // Set customer provider
           Provider.of<CustomerProvider>(context, listen: false).setCustomer(customer);
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const CustomerProfilePage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const CustomerHomePage()));
         } else {
           // Handle customer not found
           if (kDebugMode) {
@@ -88,7 +88,7 @@ class LoginPageState extends State<LoginPage> {
         if (seller != null) {
           // Set seller provider
           Provider.of<SellerProvider>(context, listen: false).setSeller(seller);
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>  AddMenuItemPage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>  const SellerHomePage()));
         } else {
           // Handle seller not found
           if (kDebugMode) {

@@ -17,8 +17,8 @@ class _MenuManagementPageState extends State<MenuManagementPage> {
           title: const Text("Menu Management"),
           bottom: const TabBar(
             tabs: [
-              Tab(text: "Menu List"),
-              Tab(text: "Delist Menu"),
+              Tab(text: "Live"),
+              Tab(text: "Delisted"),
             ],
           ),
         ),

@@ -84,7 +84,7 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
                   // Email is not updated as it's assumed to be unchanged
                 });
                 setState(() => _isLoading = false);
-                //Navigator.of(context).pop(); // Optionally pop back to previous screen
+
               },
             ),
           ],

@@ -9,17 +9,21 @@ import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/seller/menu_management.dart';
 
-class AddMenuItemPage extends StatefulWidget {
+class UpdateMenuItemPage extends StatefulWidget {
+  final MenuItem menuItem;
+
+  UpdateMenuItemPage({required this.menuItem});
+
   @override
-  _AddMenuItemPageState createState() => _AddMenuItemPageState();
+  _UpdateMenuItemPageState createState() => _UpdateMenuItemPageState();
 }
 
-class _AddMenuItemPageState extends State<AddMenuItemPage> {
-  final TextEditingController _itemNameController = TextEditingController();
-  final TextEditingController _itemCategoryController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _durationToCookController = TextEditingController();
-  File? _image; // To store the picked image file
+class _UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
+  late TextEditingController _itemNameController;
+  late TextEditingController _itemCategoryController;
+  late TextEditingController _priceController;
+  late TextEditingController _durationToCookController;
+  File? _image;
   final picker = ImagePicker();
 
   Future getImage() async {
@@ -48,16 +52,23 @@ class _AddMenuItemPageState extends State<AddMenuItemPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final seller = Provider.of<SellerProvider>(context).seller;
+  void initState() {
+    super.initState();
+    _itemNameController = TextEditingController(text: widget.menuItem.itemName);
+    _itemCategoryController = TextEditingController(text: widget.menuItem.itemCategory);
+    _priceController = TextEditingController(text: widget.menuItem.price.toString());
+    _durationToCookController = TextEditingController(text: widget.menuItem.durationToCook);
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Item'),
+        title: const Text('Update Item'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Added to ensure the form is scrollable
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -66,7 +77,7 @@ class _AddMenuItemPageState extends State<AddMenuItemPage> {
                 Image.file(_image!),
               ElevatedButton(
                 onPressed: getImage,
-                child: const Text('Add Photo'),
+                child: const Text('Change Photo'),
               ),
               TextField(
                 controller: _itemNameController,
@@ -87,41 +98,27 @@ class _AddMenuItemPageState extends State<AddMenuItemPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: seller == null ? null : () async {
+                onPressed: () async {
                   String? itemPhotoUrl;
                   if (_image != null) {
                     itemPhotoUrl = await uploadFile(_image!);
                   }
-                  MenuItem newMenuItem = MenuItem(
-                    id: null,
-                    sellerID: seller.id, // Use the seller ID from the provider
-                    itemPhoto: itemPhotoUrl ?? '',
+                  MenuItem updatedMenuItem = MenuItem(
+                    id: widget.menuItem.id,
+                    sellerID: widget.menuItem.sellerID,
+                    itemPhoto: itemPhotoUrl ?? widget.menuItem.itemPhoto,
                     itemName: _itemNameController.text.trim(),
                     itemCategory: _itemCategoryController.text.trim(),
                     price: double.parse(_priceController.text),
                     durationToCook: _durationToCookController.text.trim(),
-                    availability: true,
+                    availability: widget.menuItem.availability,
                   );
 
-                  await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
-                    newMenuItem = MenuItem(
-                      id: docRef.id,
-                      sellerID: newMenuItem.sellerID,
-                      itemPhoto: newMenuItem.itemPhoto,
-                      itemName: newMenuItem.itemName,
-                      itemCategory: newMenuItem.itemCategory,
-                      price: newMenuItem.price,
-                      durationToCook: newMenuItem.durationToCook,
-                      availability: newMenuItem.availability,
-                    );
-                    Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
-                  });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MenuManagementPage()),
-                  );
+                  await FirebaseFirestore.instance.collection('menuItems').doc(widget.menuItem.id).update(updatedMenuItem.toMap());
+                  Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(updatedMenuItem);
+                  Navigator.pop(context); // Navigate back to the previous screen
                 },
-                child: const Text('Add Item'),
+                child: const Text('Update Item'),
               ),
             ],
           ),

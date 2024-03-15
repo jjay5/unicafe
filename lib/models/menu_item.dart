@@ -68,6 +68,11 @@ class MenuProvider extends ChangeNotifier {
 
   List<MenuItem> get menuItems => _menuItems;
 
+  // Constructor to load items once this provider is called
+  MenuProvider() {
+    loadMenuItems();
+  }
+
   // Adds or updates a menu item in the provider
   void addOrUpdateMenuItem(MenuItem menuItem) {
     int index = _menuItems.indexWhere((item) => item.id == menuItem.id);
@@ -98,4 +103,19 @@ class MenuProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> loadMenuItems() async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('menuItems')
+        .where('availability', isEqualTo: true)
+        .get();
+
+    _menuItems = snapshot.docs
+        .map((doc) => MenuItem.fromFirestore(doc))
+        .toList();
+    notifyListeners();
+  }
+
 }
+
+

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/screens/seller/menu_management.dart';
+import 'package:unicafe/screens/seller/update_seller.dart';
+import 'package:unicafe/screens/seller/schedule.dart';
 
 class SellerHomePage extends StatelessWidget {
   const SellerHomePage({super.key});
@@ -23,32 +26,66 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Menu',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Order',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: Account',
-      style: optionStyle,
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
+
+  // Define your pages here
+  final List<Widget> _pageOptions = <Widget>[
+    const Home(), // Placeholder for your HomePage widget
+    MenuManagementPage(), // Replace with your actual MenuPage widget
+    const Text('Order Page'), // Replace with your actual OrderPage widget
+     ScheduleForm(),
+    const UpdateSellerPage(), // Replace with your actual AccountPage widget
+
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body: IndexedStack( // Use IndexedStack to maintain state of each page
+        index: _selectedIndex,
+        children: _pageOptions,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_menu),
+            label: 'Menu',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt),
+            label: 'Order',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.access_time),
+            label: 'Pickup Times',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Account',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber[800],
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class Home extends StatelessWidget{
+  const Home({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,53 +95,19 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
 
-        title:  seller != null
-          ? Row(
+        title: seller != null
+            ? Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('${seller.stallName}, ${seller.stallLocation}'),
+            Text('${seller.stallName.toUpperCase()}, ${seller.stallLocation.toUpperCase()}',
+            style: const TextStyle(
+              fontSize: 30, // Change the font size
+              fontWeight: FontWeight.bold, // Make the text bold
+            ),)
           ],
         )
-            : const Text('Customer not found'),
-      ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-           // backgroundColor: Colors.grey,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Menu',
-           // backgroundColor: Colors.red,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt),
-            label: 'Order',
-          //  backgroundColor: Colors.red,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Account',
-           // backgroundColor: Colors.red,
-          ),
-
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-
-
-        onTap: _onItemTapped,
+            : const Text('Seller not found'),
       ),
     );
   }
 }
-
-
-
