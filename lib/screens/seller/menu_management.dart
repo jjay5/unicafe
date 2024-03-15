@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import 'package:unicafe/models/menu_item.dart';
-import 'package:unicafe/models/seller.dart';
-import 'package:unicafe/screens/seller/add_menu.dart';
+import 'package:unicafe/screens/seller/list_menu_management.dart';
+import 'package:unicafe/screens/seller/delist_menu_management.dart';
 
 class MenuManagementPage extends StatefulWidget {
   @override
@@ -13,108 +10,27 @@ class MenuManagementPage extends StatefulWidget {
 class _MenuManagementPageState extends State<MenuManagementPage> {
   @override
   Widget build(BuildContext context) {
-    final seller = Provider.of<SellerProvider>(context).seller;
-    final String? sellerID = seller?.id; // Get the current seller's ID
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Menu Management'),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('menuItems')
-            .where('sellerID', isEqualTo: sellerID)
-            .where('availability', isEqualTo: true) // Only get available items
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final menuItems = snapshot.data!.docs
-              .map((doc) => MenuItem.fromFirestore(doc))
-              .toList();
-          return ListView.builder(
-            itemCount: menuItems.length,
-            itemBuilder: (context, index) {
-              final menuItem = menuItems[index];
-              return ListTile(
-                leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
-                    ? Container(
-                  width: 50.0, // Set your desired width
-                  height: 50.0, // Set your desired height to make it square
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
-                    image: DecorationImage(
-                      fit: BoxFit.cover, // This will fill the bounds of the container without changing the aspect ratio of the image
-                      image: NetworkImage(menuItem.itemPhoto!),
-                    ),
-                  ),
-                )
-                    : Container(
-                  width: 50.0,
-                  height: 50.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage('https://th.bing.com/th/id/OIP.DSvrEGChdMh67YH0GPo4TQAAAA?rs=1&pid=ImgDetMain'),
-                    ),
-                  ),
-                ),
-
-
-                title: Text(menuItem.itemName),
-                subtitle: Text(menuItem.itemCategory),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        // Implement edit functionality
-                      },
-                    ),
-                    ElevatedButton(
-                      //icon: Icon(Icons.delete),
-                      onPressed: () async {
-                        await delistMenuItem(menuItem.id!);
-                        // No need to manually refresh, StreamBuilder will react to the data change
-                      },
-                      child: const Text('Delist'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Action to navigate to the add new item page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddMenuItemPage()), // Adjust this to your actual "Add New Item" page
-          );
-        },
-        child: Icon(Icons.add),
-        tooltip: 'Add New Item',
+    return DefaultTabController(
+      length: 2, // Number of tabs
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Menu Management"),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: "Menu List"),
+              Tab(text: "Delist Menu"),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            // Tab 1 content
+            MenuListPage(),
+            // Tab 2 content
+            MenuDelistPage(),
+          ],
+        ),
       ),
     );
-  }
-
-  Future<void> delistMenuItem(String menuItemId) async {
-    try {
-      await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).update({'availability': false});
-      // The UI will automatically update due to the StreamBuilder reacting to the data change
-    } catch (e) {
-      print('Error delisting menu item: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error delisting menu item: $e'),
-      ));
-    }
   }
 }

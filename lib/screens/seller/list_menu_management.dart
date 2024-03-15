@@ -5,28 +5,28 @@ import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/seller/add_menu.dart';
 
-class MenuDelistPage extends StatefulWidget {
-  const MenuDelistPage({super.key});
+class MenuListPage extends StatefulWidget {
+  const MenuListPage({super.key});
 
   @override
-  _MenuDelistPageState createState() => _MenuDelistPageState();
+  _MenuListPageState createState() => _MenuListPageState();
 }
 
-class _MenuDelistPageState extends State<MenuDelistPage> {
+class _MenuListPageState extends State<MenuListPage> {
   @override
   Widget build(BuildContext context) {
     final seller = Provider.of<SellerProvider>(context).seller;
     final String? sellerID = seller?.id; // Get the current seller's ID
 
     return Scaffold(
-      /* appBar: AppBar(
+     /* appBar: AppBar(
         title: Text('Menu Management'),
       ),*/
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('menuItems')
             .where('sellerID', isEqualTo: sellerID)
-            .where('availability', isEqualTo: false) // Only get available items
+            .where('availability', isEqualTo: true) // Only get available items
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -82,10 +82,10 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
                     ElevatedButton(
                       //icon: Icon(Icons.delete),
                       onPressed: () async {
-                        await publishMenuItem(menuItem.id!);
+                        await delistMenuItem(menuItem.id!);
                         // No need to manually refresh, StreamBuilder will react to the data change
                       },
-                      child: const Text('Publish'),
+                      child: const Text('Delist'),
                     ),
                   ],
                 ),
@@ -108,9 +108,9 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
     );
   }
 
-  Future<void> publishMenuItem(String menuItemId) async {
+  Future<void> delistMenuItem(String menuItemId) async {
     try {
-      await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).update({'availability': true});
+      await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).update({'availability': false});
       // The UI will automatically update due to the StreamBuilder reacting to the data change
     } catch (e) {
       print('Error delisting menu item: $e');
