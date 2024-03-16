@@ -33,23 +33,20 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  // Define your pages here
-  final List<Widget> _pageOptions = <Widget>[
-    const Home(), // Placeholder for your HomePage widget
-    MenuManagementPage(), // Replace with your actual MenuPage widget
-    const Text('Order Page'), // Replace with your actual OrderPage widget
-     ScheduleForm(),
-    const UpdateSellerPage(), // Replace with your actual AccountPage widget
-
-  ];
-
   @override
   Widget build(BuildContext context) {
+    List<Widget> pageOptions = <Widget>[
+      const Home(), // Placeholder for your HomePage widget
+      MenuManagementPage(), // Your actual MenuPage widget
+      const Text('Order Page'), // Your actual OrderPage widget
+      ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!), // Now context is used within build, so it's safe
+      const UpdateSellerPage(), // Your actual AccountPage widget
+    ];
     return Scaffold(
 
       body: IndexedStack( // Use IndexedStack to maintain state of each page
         index: _selectedIndex,
-        children: _pageOptions,
+        children: pageOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

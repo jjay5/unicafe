@@ -1,120 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unicafe/models/pickup_slot.dart'; // Adjust the import based on your project structure
+import 'package:intl/intl.dart';
+import 'package:unicafe/models/seller.dart';
 
-class ScheduleForm extends StatefulWidget {
-  const ScheduleForm({super.key});
+class ModifyPickupSlotPage extends StatefulWidget {
+  final Seller seller;
+
+  ModifyPickupSlotPage({Key? key, required this.seller}) : super(key: key);
 
   @override
-  _ScheduleFormState createState() => _ScheduleFormState();
+  _ModifyPickupSlotPageState createState() => _ModifyPickupSlotPageState();
 }
 
-class _ScheduleFormState extends State<ScheduleForm> {
-  final _formKey = GlobalKey<FormState>();
-  List<PickupSlot> _slots = [];
-  String _selectedDayOfWeek = 'Monday';
-  TimeOfDay? _selectedStartTime;
-  TimeOfDay? _selectedEndTime;
-
-  Future<void> _showTimePicker(BuildContext context, bool isStartTime) async {
-    final initialTime = TimeOfDay.now();
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: isStartTime ? _selectedStartTime ?? initialTime : _selectedEndTime ?? initialTime,
-    );
-    if (pickedTime != null) {
-      setState(() {
-        if (isStartTime) {
-          _selectedStartTime = pickedTime;
-        } else {
-          _selectedEndTime = pickedTime;
-        }
-      });
-    }
-  }
-
-  void _addSlot() {
-    if (_selectedStartTime != null && _selectedEndTime != null) {
-      final slot = PickupSlot(
-        dayOfWeek: _selectedDayOfWeek,
-        startTime: _selectedStartTime!.format(context),
-        endTime: _selectedEndTime!.format(context),
-      );
-      setState(() {
-        _slots.add(slot);
-      });
-    }
-  }
-
-  void _saveSlots() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      for (final slot in _slots) {
-        await FirebaseFirestore.instance.collection('pickupSlots').add(slot.toMap());
-      }
-      // Show confirmation and clear form or navigate away
-    }
-  }
+class _ModifyPickupSlotPageState extends State<ModifyPickupSlotPage> {
+  final _daysOfWeek = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Set Pickup Schedule')),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            DropdownButtonFormField<String>(
-              value: _selectedDayOfWeek,
-              onChanged: (value) => setState(() => _selectedDayOfWeek = value!),
-              items: <String>['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-            Row(
-              children: <Widget>[
-                Text('Start Time: ${_selectedStartTime?.format(context) ?? ''}'),
-                ElevatedButton(
-                  onPressed: () => _showTimePicker(context, true),
-                  child: Text('Pick Start Time'),
-                ),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Text('End Time: ${_selectedEndTime?.format(context) ?? ''}'),
-                ElevatedButton(
-                  onPressed: () => _showTimePicker(context, false),
-                  child: Text('Pick End Time'),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: _addSlot,
-              child: Text('Add Slot'),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _slots.length,
-                itemBuilder: (context, index) {
-                  final slot = _slots[index];
-                  return ListTile(
-                    title: Text('${slot.dayOfWeek}: ${slot.startTime} - ${slot.endTime}'),
-                  );
+      appBar: AppBar(
+        title: const Text('Pickup Times'),
+      ),
+      body: ListView.builder(
+        itemCount: _daysOfWeek.length,
+        itemBuilder: (context, index) {
+          return Card(
+            child: ListTile(
+              title: Text(_daysOfWeek[index]),
+              subtitle: FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('sellers')
+                    .doc(widget.seller.id)
+                    .collection('pickupSlots')
+                    .doc(_daysOfWeek[index])
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.data != null) {
+                      var data = snapshot.data!.data() as Map<String, dynamic>?;
+                      if (data != null) {
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                              onTap: () => _selectTime(context, true, _daysOfWeek[index], data['startTime']),
+                              child: Text('Start: ${data['startTime'] ?? 'Not set'}'),
+                            ),
+                            InkWell(
+                              onTap: () => _selectTime(context, false, _daysOfWeek[index], data['endTime']),
+                              child: Text('End: ${data['endTime'] ?? 'Not set'}'),
+                            ),
+                          ],
+                        );
+                      }
+                    }
+                  }
+                  return const Text('Loading...');
                 },
               ),
+              onTap: () => _showModifyDialog(context, _daysOfWeek[index]),
             ),
-            ElevatedButton(
-              onPressed: _saveSlots,
-              child: Text('Save Slots'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+
+  Future<void> _selectTime(BuildContext context, bool isStartTime, String dayOfWeek, String? currentTime) async {
+    TimeOfDay initialTime = const TimeOfDay(hour: 10, minute: 0); // Default time if not set
+    if (currentTime != null) {
+      // Adjust parsing for AM/PM format
+      final dateFormat = DateFormat.jm(); // For parsing the initial time in AM/PM format
+      DateTime parsedDate = dateFormat.parse(currentTime);
+      initialTime = TimeOfDay(hour: parsedDate.hour, minute: parsedDate.minute);
+    }
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (pickedTime != null) {
+      // Convert pickedTime to a DateTime to use with DateFormat
+      final now = DateTime.now();
+      final pickedDateTime = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+      final newTime = DateFormat.jm().format(pickedDateTime); // Format to AM/PM
+
+      final slotMap = {
+        isStartTime ? 'startTime' : 'endTime': newTime,
+      };
+
+      await FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(widget.seller.id)
+          .collection('pickupSlots')
+          .doc(dayOfWeek)
+          .set(slotMap, SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pickup time updated successfully!')));
+
+      setState(() {}); // Rebuild the widget to reflect the update
+    }
+  }
+
+  Future<void> _showModifyDialog(BuildContext context, String dayOfWeek) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Modify Time for $dayOfWeek"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                ElevatedButton(
+                  onPressed: () => _selectTime(context, true, dayOfWeek, null),
+                  child: const Text('Set Start Time'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _selectTime(context, false, dayOfWeek, null),
+                  child: const Text('Set End Time'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

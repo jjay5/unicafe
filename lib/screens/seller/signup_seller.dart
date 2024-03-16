@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/models/pickup_slot.dart';
+
 
 class SignUpSellerPage extends StatelessWidget {
   final TextEditingController _stallNameController = TextEditingController();
@@ -67,6 +70,9 @@ class SignUpSellerPage extends StatelessWidget {
 
                 // Add the Seller details in Firestore
                 await _firestore.collection('sellers').doc(userCredential.user!.uid).set(newSeller.toMap());
+
+                // Call the function to create a default pickup schedule
+                await createDefaultPickupSchedule(userCredential.user!.uid, context);
               },
             ),
           ],
@@ -74,4 +80,35 @@ class SignUpSellerPage extends StatelessWidget {
       ),
     );
   }
+  Future<void> createDefaultPickupSchedule(String sellerId, BuildContext context) async {
+    final List<String> daysOfWeek = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    final defaultStartTime = TimeOfDay(hour: 10, minute: 0);
+    final defaultEndTime = TimeOfDay(hour: 21, minute: 0);
+
+    for (final day in daysOfWeek) {
+      final slot = PickupSlot(
+        sellerId: sellerId,
+        dayOfWeek: day,
+        startTime: formatTimeOfDay(defaultStartTime),
+        endTime: formatTimeOfDay(defaultEndTime),
+      );
+
+      await FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(sellerId)
+          .collection('pickupSlots')
+          .doc(day) // Use the day of the week as the document ID to ensure uniqueness
+          .set(slot.toMap());
+    }
+  }
+
+  String formatTimeOfDay(TimeOfDay tod) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
+    final format = DateFormat.jm(); // Use 'hh:mm a' for hour:minute AM/PM format
+    return format.format(dt);
+  }
+
 }

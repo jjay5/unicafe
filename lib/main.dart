@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:unicafe/screens/seller/signup_seller.dart';
 import 'package:unicafe/services/firebase_options.dart';
 import 'package:unicafe/screens/login.dart';
 import 'package:unicafe/screens/customer/signup_customer.dart';
+import 'package:unicafe/screens/seller/signup_seller.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/models/menu_item.dart';
@@ -59,7 +59,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SignUpCustomerPage()), // Ensure this matches your sign-up page class name
+                  MaterialPageRoute(builder: (context) => SignUpCustomerPage()),
                 );
               },
             ),
@@ -69,7 +69,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SignUpSellerPage()), // Ensure this matches your login page class name
+                  MaterialPageRoute(builder: (context) => SignUpSellerPage()),
                 );
               },
             ),
@@ -79,7 +79,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()), // Ensure this matches your login page class name
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
                 );
               },
             ),
