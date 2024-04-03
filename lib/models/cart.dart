@@ -15,7 +15,20 @@ class CartProvider with ChangeNotifier {
   List<CartItem> get items => List.unmodifiable(_items);
 
   void addToCart(MenuItem item, int quantity, String note) {
-    _items.add(CartItem(item: item, quantity: quantity, note: note));
+    // Check if the item is already in the cart
+    int index = _items.indexWhere((cartItem) => cartItem.item.id == item.id);
+
+    if (index != -1) {
+      // If the item exists, update its quantity
+      _items[index] = CartItem(
+        item: _items[index].item,
+        quantity: _items[index].quantity + quantity, // Add the new quantity to the existing quantity
+        note: _items[index].note,
+      );
+    } else {
+      // If the item doesn't exist, add it to the cart
+      _items.add(CartItem(item: item, quantity: quantity, note: note));
+    }
     notifyListeners();
   }
 
@@ -24,3 +37,7 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+
+
+
