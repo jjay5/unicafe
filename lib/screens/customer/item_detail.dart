@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
+import 'package:unicafe/models/cart.dart';
 
 class ItemDetailsPage extends StatefulWidget {
   final MenuItem menuItem;
 
-  const ItemDetailsPage({Key? key, required this.menuItem}) : super(key: key);
+  const ItemDetailsPage({super.key, required this.menuItem});
 
   @override
   State<ItemDetailsPage> createState() => _ItemDetailsPageState();
@@ -24,19 +27,29 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.menuItem.itemPhoto != null)
-              Image.network(widget.menuItem.itemPhoto!),
+           // if (widget.menuItem.itemPhoto != null)
+             // Image.network(widget.menuItem.itemPhoto!),
+            widget.menuItem.itemPhoto != null
+                ? Image.network(
+              widget.menuItem.itemPhoto!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // This will only be reached if the URL is not null but the image failed to load
+                return Image.asset('assets/images/default_image.png'); // Fallback asset image if network image fails to load
+              },
+            )
+                : Image.asset('assets/images/default_image.png'), // Default image if itemPhoto is null
             ListTile(
               title: Text(widget.menuItem.itemName),
-              subtitle: Text('\$${widget.menuItem.price.toStringAsFixed(2)}'),
+              subtitle: Text('RM${widget.menuItem.price.toStringAsFixed(2)}'),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
-                  Text('Quantity:'),
+                  const Text('Quantity:'),
                   IconButton(
-                    icon: Icon(Icons.remove),
+                    icon: const Icon(Icons.remove),
                     onPressed: () {
                       setState(() {
                         if (_quantity > 1) {
@@ -47,7 +60,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                   ),
                   Text('$_quantity'),
                   IconButton(
-                    icon: Icon(Icons.add),
+                    icon: const Icon(Icons.add),
                     onPressed: () {
                       setState(() {
                         _quantity++;
@@ -61,7 +74,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 controller: _noteController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Note to chef (optional)',
                   border: OutlineInputBorder(),
                 ),
@@ -71,11 +84,19 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Here you can handle the action when the user wants to add the item to their cart
-                  // You might want to use a provider or another state management solution to manage the cart state
-                  print('Item added to cart with quantity: $_quantity and note: ${_noteController.text}');
+                  if (kDebugMode) {
+                    print('Item added to cart with quantity: $_quantity and note: ${_noteController.text}');
+                  }
+
+                  // Add item to cart using Provider
+                  Provider.of<CartProvider>(context, listen: false)
+                      .addToCart(widget.menuItem, _quantity, _noteController.text);
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Added to cart'),
+                  ));
                 },
-                child: Text('Add to Cart'),
+                child: const Text('Add to Cart'),
               ),
             ),
           ],

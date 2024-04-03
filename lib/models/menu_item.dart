@@ -34,6 +34,8 @@ class MenuItem {
     };
   }
 
+
+
   factory MenuItem.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return MenuItem(
@@ -63,7 +65,7 @@ class MenuItem {
 }
 
 class MenuProvider extends ChangeNotifier {
-  // Assuming you have a list to hold multiple menu items
+
   List<MenuItem> _menuItems = [];
 
   List<MenuItem> get menuItems => _menuItems;

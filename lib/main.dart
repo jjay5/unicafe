@@ -8,18 +8,22 @@ import 'package:unicafe/screens/seller/signup_seller.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/models/menu_item.dart';
+import 'package:unicafe/models/cart.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SellerProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+
       ],
       child: const MyApp(),
     ),

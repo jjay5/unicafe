@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/customer/list_menu.dart';
 
@@ -22,10 +21,10 @@ class ListStallPage extends StatelessWidget {
         future: fetchSellers(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData) {
-            return Center(child: Text('No stalls found'));
+            return const Center(child: Text('No stalls found'));
           }
           List<Seller> sellers = snapshot.data!;
           return ListView.builder(
