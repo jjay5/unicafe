@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/cart.dart';
 import 'package:unicafe/models/seller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unicafe/screens/customer/order_confirmation.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -20,19 +21,13 @@ class CartPage extends StatelessWidget {
 
         if (!itemsBySeller.containsKey(sellerId)) {
           itemsBySeller[sellerId] = {
-            'details': Seller.fromFirestore(sellerDoc), // Assuming you have a method like this
+            'details': Seller.fromFirestore(sellerDoc),
             'items': <CartItem>[]
           };
         }
         itemsBySeller[sellerId]['items'].add(cartItem);
       }
-
       return itemsBySeller;
-    }
-
-    // Function to navigate to order confirmation page
-    void navigateToOrderConfirmationPage(String sellerID) {
-      // Navigate to order confirmation page
     }
 
     return Scaffold(
@@ -56,19 +51,35 @@ class CartPage extends StatelessWidget {
                 String sellerId = itemsBySeller.keys.elementAt(index);
                 Seller seller = itemsBySeller[sellerId]['details'];
                 List<CartItem> items = itemsBySeller[sellerId]['items'];
-                return ExpansionTile(
+
+                return ListTile(
                   title: Text(seller.stallName), // Display seller name
                   subtitle: Text(seller.stallLocation), // Display seller location
-                  children: items.map((cartItem) => ListTile(
-                    title: Text(cartItem.item.itemName),
-                    subtitle: Text('Quantity: ${cartItem.quantity}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        cart.removeCartItem(cartItem);
-                      },
-                    ),
-                  )).toList(),
+                  onTap: () {
+                    // Navigate to OrderConfirmationPage with all items from the same stall
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => OrderConfirmationPage(
+                          seller: seller,
+                          cartItems: items,
+                        ),
+                      ),
+                    );
+                  },
+                  trailing: IconButton(
+                    icon: Icon(Icons.arrow_forward_ios),
+                    onPressed: () {
+                      // Navigate to OrderConfirmationPage with all items from the same stall
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => OrderConfirmationPage(
+                            seller: seller,
+                            cartItems: items,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );
