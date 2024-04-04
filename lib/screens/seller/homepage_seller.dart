@@ -36,11 +36,11 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pageOptions = <Widget>[
-      const Home(), // Placeholder for your HomePage widget
-      MenuManagementPage(), // Your actual MenuPage widget
-      const Text('Order Page'), // Your actual OrderPage widget
-      ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!), // Now context is used within build, so it's safe
-      const UpdateSellerPage(), // Your actual AccountPage widget
+      const Home(), // Placeholder for HomePage widget
+      MenuManagementPage(), // MenuPage widget
+      const Text('Order Page'), // OrderPage widget
+      ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!),
+      const UpdateSellerPage(), // AccountPage widget
     ];
     return Scaffold(
 

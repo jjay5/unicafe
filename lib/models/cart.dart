@@ -10,6 +10,7 @@ class CartItem {
 }
 
 class CartProvider with ChangeNotifier {
+
   final List<CartItem> _items = [];
 
   List<CartItem> get items => List.unmodifiable(_items);
@@ -36,6 +37,11 @@ class CartProvider with ChangeNotifier {
     _items.remove(cartItem);
     notifyListeners();
   }
+
+  double get totalAmount {
+    return _items.fold(0.0, (sum, item) => sum + (item.quantity * item.item.price));
+  }
+
 }
 
 

@@ -10,29 +10,36 @@ class CartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var cart = Provider.of<CartProvider>(context);
-    var sellerProvider = Provider.of<SellerProvider>(context, listen: false);
 
-    Future<Map<String, List<CartItem>>> groupItemsBySeller() async {
-      Map<String, List<CartItem>> itemsBySeller = {};
+    Future<Map<String, dynamic>> groupItemsBySeller() async {
+      Map<String, dynamic> itemsBySeller = {};
 
       for (var cartItem in cart.items) {
-        var sellerDoc = await FirebaseFirestore.instance.collection('sellers').doc(cartItem.item.sellerID).get();
-        var seller = Seller.fromFirestore(sellerDoc);
+        String sellerId = cartItem.item.sellerID;
+        DocumentSnapshot sellerDoc = await FirebaseFirestore.instance.collection('sellers').doc(sellerId).get();
 
-        if (!itemsBySeller.containsKey(seller.stallName)) {
-          itemsBySeller[seller.stallName] = [];
+        if (!itemsBySeller.containsKey(sellerId)) {
+          itemsBySeller[sellerId] = {
+            'details': Seller.fromFirestore(sellerDoc), // Assuming you have a method like this
+            'items': <CartItem>[]
+          };
         }
-        itemsBySeller[seller.stallName]!.add(cartItem);
+        itemsBySeller[sellerId]['items'].add(cartItem);
       }
 
       return itemsBySeller;
+    }
+
+    // Function to navigate to order confirmation page
+    void navigateToOrderConfirmationPage(String sellerID) {
+      // Navigate to order confirmation page
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cart'),
       ),
-      body: FutureBuilder<Map<String, List<CartItem>>>(
+      body: FutureBuilder<Map<String, dynamic>>(
         future: groupItemsBySeller(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -46,10 +53,12 @@ class CartPage extends StatelessWidget {
             return ListView.builder(
               itemCount: itemsBySeller.keys.length,
               itemBuilder: (context, index) {
-                String sellerName = itemsBySeller.keys.elementAt(index);
-                List<CartItem> items = itemsBySeller[sellerName]!;
+                String sellerId = itemsBySeller.keys.elementAt(index);
+                Seller seller = itemsBySeller[sellerId]['details'];
+                List<CartItem> items = itemsBySeller[sellerId]['items'];
                 return ExpansionTile(
-                  title: Text(sellerName),
+                  title: Text(seller.stallName), // Display seller name
+                  subtitle: Text(seller.stallLocation), // Display seller location
                   children: items.map((cartItem) => ListTile(
                     title: Text(cartItem.item.itemName),
                     subtitle: Text('Quantity: ${cartItem.quantity}'),

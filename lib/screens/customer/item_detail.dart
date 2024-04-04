@@ -27,8 +27,6 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           // if (widget.menuItem.itemPhoto != null)
-             // Image.network(widget.menuItem.itemPhoto!),
             widget.menuItem.itemPhoto != null
                 ? Image.network(
               widget.menuItem.itemPhoto!,
