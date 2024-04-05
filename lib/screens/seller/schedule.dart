@@ -6,7 +6,7 @@ import 'package:unicafe/models/seller.dart';
 class ModifyPickupSlotPage extends StatefulWidget {
   final Seller seller;
 
-  ModifyPickupSlotPage({Key? key, required this.seller}) : super(key: key);
+  const ModifyPickupSlotPage({super.key, required this.seller});
 
   @override
   _ModifyPickupSlotPageState createState() => _ModifyPickupSlotPageState();

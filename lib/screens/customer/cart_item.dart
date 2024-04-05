@@ -67,7 +67,7 @@ class CartPage extends StatelessWidget {
                     );
                   },
                   trailing: IconButton(
-                    icon: Icon(Icons.arrow_forward_ios),
+                    icon: const Icon(Icons.arrow_forward_ios),
                     onPressed: () {
                       // Navigate to OrderConfirmationPage with all items from the same stall
                       Navigator.of(context).push(

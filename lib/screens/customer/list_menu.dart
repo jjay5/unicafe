@@ -5,7 +5,8 @@ import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/customer/item_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/cart.dart';
-import 'package:unicafe/screens/customer/cart_item.dart';
+
+import 'order_confirmation.dart';
 
 class MenuPage extends StatelessWidget {
   final String sellerId;
@@ -42,7 +43,6 @@ class MenuPage extends StatelessWidget {
             body: const Center(child: CircularProgressIndicator()),
           );
         }
-
         final seller = sellerSnapshot.data;
         final appBarTitle = seller != null ? '${seller.stallName}, ${seller.stallLocation}' : 'Menu';
 
@@ -82,22 +82,33 @@ class MenuPage extends StatelessWidget {
               );
             },
           ),
-          floatingActionButton: Consumer<CartProvider>(
-            builder: (context, cart, child) {
-              return cart.items.isNotEmpty
-                  ? FloatingActionButton.extended(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CartPage()),
-                  );
-                },
-                label: Text('Review Order (${cart.items.length})'),
-                icon: const Icon(Icons.shopping_cart),
-              )
-                  : Container();
+          floatingActionButton: Consumer<CartProvider>(builder: (context, cartProvider, child) {
+          // No need to fetch seller details again if you have them from the FutureBuilder above.
+          final sellerDetails = sellerSnapshot.data;
+          if (sellerDetails == null) {
+            return Container(); // Or some other widget in case the seller details are not available.
+          }
+          final itemsFromThisSeller = cartProvider.items.where((item) => item.item.sellerID == sellerDetails.id).toList();
+
+          return itemsFromThisSeller.isNotEmpty
+              ? FloatingActionButton.extended(
+            onPressed: () {
+              // Navigate directly to OrderConfirmationPage
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderConfirmationPage(
+                    seller: sellerDetails,
+                    cartItems: itemsFromThisSeller,
+                  ),
+                ),
+              );
             },
-          ),
+            label: Text('Review Order (${itemsFromThisSeller.length})'),
+            icon: const Icon(Icons.shopping_cart),
+          )
+              : Container(); // In case there are no items from this seller in the cart.
+        }),
         );
       },
     );
