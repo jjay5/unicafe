@@ -318,7 +318,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 ),
                 ElevatedButton(
                   onPressed: () => _confirmOrder(context),
-                  child: const Text('Confirm Order'),
+                  child: const Text('Place Order'),
                 ),
               ],
             ),
