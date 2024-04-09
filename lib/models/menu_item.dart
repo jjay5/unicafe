@@ -34,8 +34,6 @@ class MenuItem {
     };
   }
 
-
-
   factory MenuItem.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return MenuItem(

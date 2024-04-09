@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/cart.dart';
@@ -27,6 +27,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   final List<String> _timeSlots = [];
   String? _selectedOption;
   String? _selectedOptionPayment;
+  bool _showCardDetails = false; // Initially hidden
 
   @override
   void initState() {
@@ -83,6 +84,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     return _cartItems.fold(0, (total, current) => total + (current.item.price * current.quantity));
   }
 
+
+
   void _removeItem(int index) {
     setState(() {
       _cartItems.removeAt(index);
@@ -91,7 +94,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Provider.of<CartProvider>(context, listen: false).removeCartItem(index);
   }
 
-  void _confirmOrder(BuildContext context) {
+  /*void _confirmOrder(BuildContext context) {
     // Handle the order confirmation logic here
     if (kDebugMode) {
       print("ss: $_selectedTime");
@@ -102,7 +105,54 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     if (kDebugMode) {
       print("$_selectedOptionPayment");
     }
+  }*/
+  void _confirmOrder(BuildContext context) async {
+    try {
+      // Reference to Firestore
+      final firestore = FirebaseFirestore.instance;
+
+      // Get the current user ID (assuming you have authentication)
+      // You may need to adjust this according to your auth setup
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Create a new order document in Firestore
+      DocumentReference orderRef = await firestore.collection('orders').add({
+        'userId': userId, // assuming you're tracking orders by user
+        'date': Timestamp.now(), // current date and time
+        'status': 'pending',
+        'totalAmount': _calculateTotal(),
+        'paymentMethod': _selectedOption,
+        'pickupMethod': _selectedOptionPayment,
+        'pickupTime': _selectedTime,
+      });
+
+      // Iterate through cart items and add each to the OrderItem sub-collection
+      for (var cartItem in _cartItems) {
+        await orderRef.collection('OrderItem').add({
+          'itemId': cartItem.item.id, // Adjust according to your item model
+          //'itemName': cartItem.item.itemName,
+          'quantity': cartItem.quantity,
+          'totalPrice': cartItem.totalItemPrice,
+          'notes': cartItem.note,
+          // Add more fields as necessary
+        });
+      }
+
+      // Show a success message or navigate to a success page
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order placed successfully!')),
+      );
+
+      // Optionally, clear the cart after order is placed
+      //Provider.of<CartProvider>(context, listen: false).clearCart();
+    } catch (e) {
+      // Handle errors (e.g., show an error message)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error placing order: $e')),
+      );
+    }
   }
+
 
   void _showPickupTimeSelection(BuildContext context) {
     showModalBottomSheet(
@@ -166,164 +216,214 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('Pickup at: ${widget.seller.stallName}, ${widget.seller.stallLocation}'),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Pickup time: $_selectedTime'),
-                InkWell(
-                  onTap: () => _showPickupTimeSelection(context),
-                  child: const Text(
-                    'EDIT',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Option form section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Pickup Options: '),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Dine-in',
-                      groupValue: _selectedOption,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedOption = value;
-                        });
-                      },
-                    ),
-                    const Text('Dine-in'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Take-away',
-                      groupValue: _selectedOption,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedOption = value;
-                        });
-                      },
-                    ),
-                    const Text('Take-away'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Payment method: '),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Cash',
-                      groupValue: _selectedOptionPayment,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedOptionPayment = value;
-                        });
-                      },
-                    ),
-                    const Text('Cash'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Online',
-                      groupValue: _selectedOptionPayment,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedOptionPayment = value;
-                        });
-                      },
-                    ),
-                    const Text('Online'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Your Order:'),
-                InkWell(
-                  onTap: () => _showPickupTimeSelection(context),
-                  child: const Text(
-                    'ADD ITEMS',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
-          ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _cartItems.length,
-              itemBuilder: (context, index) {
-                CartItem item = _cartItems[index];
-                return ListTile(
-                  title: Text(item.item.itemName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Quantity: ${item.quantity}'),
-                      Text('Notes: ${item.note}'),
-                    ],
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text('Pickup at: ${widget.seller.stallName}, ${widget.seller.stallLocation}'),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () {
-                      _removeItem(index);
-                    },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Pickup time: $_selectedTime'),
+                        InkWell(
+                          onTap: () => _showPickupTimeSelection(context),
+                          child: const Text(
+                            'EDIT',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text('Total: RM${_calculateTotal().toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 20),
-                ),
-                ElevatedButton(
-                  onPressed: () => _confirmOrder(context),
-                  child: const Text('Place Order'),
-                ),
-              ],
+                  // Option form section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Pickup Options: '),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'Dine-in',
+                              groupValue: _selectedOption,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOption = value;
+                                });
+                              },
+                            ),
+                            const Text('Dine-in'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'Take-away',
+                              groupValue: _selectedOption,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOption = value;
+                                });
+                              },
+                            ),
+                            const Text('Take-away'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Payment method: '),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'Cash',
+                              groupValue: _selectedOptionPayment,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOptionPayment = value;
+                                  _showCardDetails = false;
+                                });
+                              },
+                            ),
+                            const Text('Cash'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'Card',
+                              groupValue: _selectedOptionPayment,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOptionPayment = value;
+                                  _showCardDetails = value == 'Card'; // Show card details if 'Online' is selected
+                                });
+                              },
+                            ),
+
+
+                            const Text('Card'),
+                          ],
+                        ),
+                        if (_showCardDetails)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: 'Card Number',
+                                    border: OutlineInputBorder(), // Adds a border around the input field
+                                    contentPadding: EdgeInsets.all(10), // Adds padding inside the input field
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                                const SizedBox(height: 8), // Adds space between input fields
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: 'Expiration Date (MM/YY)',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: 'CVV',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ],
+                            ),
+                          ),
+
+
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Your Order:'),
+                        InkWell(
+                          onTap: () => _showPickupTimeSelection(context),
+                          child: const Text(
+                            'ADD ITEMS',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Alternative to ListView.builder
+                  Column(
+                    children: _cartItems.map((item) {
+                      return ListTile(
+                        title: Text(item.item.itemName),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //('RM ${(item.quantity * item.item.price).toDouble().toStringAsFixed(2)}'),
+                            Text('RM ${item.totalItemPrice.toDouble().toStringAsFixed(2)}'),
+                            Text('Quantity: ${item.quantity}'),
+                            Text('Notes: ${item.note}'),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: () {
+                            _removeItem(_cartItems.indexOf(item));
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.grey, // Set the desired color for the bottom navigation bar
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                'Total: RM${_calculateTotal().toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 20, color: Colors.white), // Adjust text color as needed
+              ),
+              ElevatedButton(
+                onPressed: () => _confirmOrder(context),
+                child: const Text('Place Order'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -5,8 +5,14 @@ class CartItem {
   final MenuItem item;
   final int quantity;
   final String note;
+  final double totalItemPrice;
 
-  CartItem({required this.item, required this.quantity, required this.note});
+  CartItem({
+    required this.item,
+    required this.quantity,
+    String? note,
+    required this.totalItemPrice,
+  }) : note = note ?? '-'; // Use "None" if note is null
 }
 
 class CartProvider with ChangeNotifier {
@@ -15,21 +21,40 @@ class CartProvider with ChangeNotifier {
 
   List<CartItem> get items => List.unmodifiable(_items);
 
-  void addToCart(MenuItem item, int quantity, String note) {
-    // Check if the item is already in the cart
-    int index = _items.indexWhere((cartItem) => cartItem.item.id == item.id);
+  void addToCart(MenuItem item, int quantity, String? note) {
+    // Normalize note by considering null or empty notes as 'None'
+    final normalizedNote = note?.isEmpty ?? true ? '-' : note;
+
+    // Find index based on item ID and note
+    // For items without notes ('None'), this finds any matching item
+    // For items with notes, this looks for an exact match
+    int index = _items.indexWhere((cartItem) =>
+    cartItem.item.id == item.id &&
+        (normalizedNote == '-' ? cartItem.note == '-' : cartItem.note == normalizedNote));
 
     if (index != -1) {
-      // If the item exists, update its quantity
+      // If item exists in the cart, update its quantity
+      var existingItem = _items[index];
+      var updatedQuantity = existingItem.quantity + quantity;
+      var updatedTotalPrice = updatedQuantity * item.price; // Calculate the total price based on the updated quantity
+
       _items[index] = CartItem(
-        item: _items[index].item,
-        quantity: _items[index].quantity + quantity, // Add the new quantity to the existing quantity
-        note: _items[index].note,
+        item: existingItem.item,
+        quantity: updatedQuantity,
+        note: existingItem.note,
+        totalItemPrice: updatedTotalPrice, // Update the total price
       );
     } else {
-      // If the item doesn't exist, add it to the cart
-      _items.add(CartItem(item: item, quantity: quantity, note: note));
+      // If item does not exist, add it as a new entry
+      var totalItemPrice = quantity * item.price; // Calculate total price for new item
+      _items.add(CartItem(
+        item: item,
+        quantity: quantity,
+        note: normalizedNote,
+        totalItemPrice: totalItemPrice, // Assign the calculated total price
+      ));
     }
+
     notifyListeners();
   }
 
@@ -37,7 +62,6 @@ class CartProvider with ChangeNotifier {
     _items.removeAt(index);
     notifyListeners();
   }
-
 }
 
 
