@@ -5,6 +5,7 @@ import 'package:unicafe/models/cart.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/models/pickup_slot.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unicafe/models/order.dart';
 import 'package:intl/intl.dart';
 
 class OrderConfirmationPage extends StatefulWidget {
@@ -84,8 +85,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     return _cartItems.fold(0, (total, current) => total + (current.item.price * current.quantity));
   }
 
-
-
   void _removeItem(int index) {
     setState(() {
       _cartItems.removeAt(index);
@@ -94,43 +93,37 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Provider.of<CartProvider>(context, listen: false).removeCartItem(index);
   }
 
-  /*void _confirmOrder(BuildContext context) {
-    // Handle the order confirmation logic here
-    if (kDebugMode) {
-      print("ss: $_selectedTime");
-    }
-    if (kDebugMode) {
-      print("$_selectedOption");
-    }
-    if (kDebugMode) {
-      print("$_selectedOptionPayment");
-    }
-  }*/
   void _confirmOrder(BuildContext context) async {
     try {
+      // Get the current user ID
+      String customerID = FirebaseAuth.instance.currentUser!.uid;
+
+      // Create a new order object
+      Orders order = Orders(
+        id: null,
+        customerID: customerID,
+        orderDate: DateTime.now(),
+        orderStatus: 'pending',
+        totalAmount: _calculateTotal(),
+        paymentMethod: _selectedOption ?? '',
+        pickupMethod: _selectedOptionPayment ?? '',
+        pickupTime: _selectedTime ?? '',
+        items: _cartItems,
+        sellerID: widget.seller.id,
+        //items: _cartItems, // Use the cart items directly
+      );
+
       // Reference to Firestore
       final firestore = FirebaseFirestore.instance;
 
-      // Get the current user ID (assuming you have authentication)
-      // You may need to adjust this according to your auth setup
-      String userId = FirebaseAuth.instance.currentUser!.uid;
+      // Add the order to the 'orders' collection
+      DocumentReference orderRef =
+      await firestore.collection('orders').add(order.toMap());
 
-      // Create a new order document in Firestore
-      DocumentReference orderRef = await firestore.collection('orders').add({
-        'userId': userId, // assuming you're tracking orders by user
-        'date': Timestamp.now(), // current date and time
-        'status': 'pending',
-        'totalAmount': _calculateTotal(),
-        'paymentMethod': _selectedOption,
-        'pickupMethod': _selectedOptionPayment,
-        'pickupTime': _selectedTime,
-      });
-
-      // Iterate through cart items and add each to the OrderItem sub-collection
+      // Iterate through cart items and add each to the 'orderItems' sub-collection
       for (var cartItem in _cartItems) {
-        await orderRef.collection('OrderItem').add({
-          'itemId': cartItem.item.id, // Adjust according to your item model
-          //'itemName': cartItem.item.itemName,
+        await orderRef.collection('orderItems').add({
+          'menuItemId': cartItem.item.id, // Adjust according to your item model
           'quantity': cartItem.quantity,
           'totalPrice': cartItem.totalItemPrice,
           'notes': cartItem.note,
@@ -152,7 +145,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       );
     }
   }
-
 
   void _showPickupTimeSelection(BuildContext context) {
     showModalBottomSheet(
@@ -353,8 +345,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                               ],
                             ),
                           ),
-
-
                       ],
                     ),
                   ),
