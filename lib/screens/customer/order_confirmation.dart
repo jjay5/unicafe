@@ -108,7 +108,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         paymentMethod: _selectedOption ?? '',
         pickupMethod: _selectedOptionPayment ?? '',
         pickupTime: _selectedTime ?? '',
-        items: _cartItems,
         sellerID: widget.seller.id,
         //items: _cartItems, // Use the cart items directly
       );
@@ -121,7 +120,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       await firestore.collection('orders').add(order.toMap());
 
       // Iterate through cart items and add each to the 'orderItems' sub-collection
-      for (var cartItem in _cartItems) {
+      /*for (var cartItem in _cartItems) {
         await orderRef.collection('orderItems').add({
           'menuItemId': cartItem.item.id, // Adjust according to your item model
           'quantity': cartItem.quantity,
@@ -129,7 +128,21 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
           'notes': cartItem.note,
           // Add more fields as necessary
         });
+      }*/
+      // Iterate through cart items and add each to the 'orderItems' sub-collection
+      for (var cartItem in _cartItems) {
+        // Generate a unique ID for each order item based on menuItemId and notes
+        String orderItemId = '${cartItem.item.id}_${cartItem.note ?? ''}';
+
+        await orderRef.collection('orderItems').doc(orderItemId).set({
+          'menuItemId': cartItem.item.id,
+          'quantity': cartItem.quantity,
+          'totalPrice': cartItem.totalItemPrice,
+          'notes': cartItem.note ?? '',
+          // Add more fields as necessary
+        });
       }
+
 
       // Show a success message or navigate to a success page
       ScaffoldMessenger.of(context).showSnackBar(
