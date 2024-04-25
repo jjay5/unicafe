@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unicafe/models/menu_item.dart';
 
 class Orders {
   final String? id;
@@ -10,7 +11,6 @@ class Orders {
   final String paymentMethod;
   final String pickupMethod;
   final String pickupTime;
-  //final bool paid;
 
   Orders({
     this.id,
@@ -21,8 +21,7 @@ class Orders {
     required this.orderStatus,
     required this.paymentMethod,
     required this.pickupMethod,
-    required this.pickupTime
-   // this.paid = false,
+    required this.pickupTime,
   });
 
   // Convert Order object to a map
@@ -34,12 +33,14 @@ class Orders {
       'paymentMethod': paymentMethod,
       'pickupMethod': pickupMethod,
       'pickupTime': pickupTime,
-      //'paid': paid,
+      'customerID': customerID,
+      'sellerID': sellerID,
     };
   }
 
+  // Factory method to create Orders object from Firestore snapshot
   factory Orders.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Orders(
       id: doc.id,
       orderDate: (data['orderDate'] as Timestamp).toDate(),
@@ -50,22 +51,83 @@ class Orders {
       pickupTime: data['pickupTime'],
       customerID: data['customerID'],
       sellerID: data['sellerID'],
-      //paid: data['paid'] ?? false,
     );
   }
 
-  static Orders fromMap(Map<String, dynamic> map) {
-    return Orders(
-      id: map['id'] ?? '',
-      orderDate: (map['orderDate'] as Timestamp).toDate(),
-      totalAmount: map['totalAmount'],
-      orderStatus: map['orderStatus'],
-      paymentMethod: map['paymentMethod'],
-      pickupMethod: map['pickupMethod'],
-      pickupTime: map['pickupTime'],
-      customerID: map['customerID'],
-      sellerID: map['sellerID'],
-      //paid: map['paid'] ?? false,
+  // Method to update order status
+  Future<void> updateOrderStatus(String newStatus) async {
+    await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(id)
+        .update({'orderStatus': newStatus});
+  }
+
+  // Method to get order items
+  Stream<List<OrderItem>> getOrderItems() {
+    return FirebaseFirestore.instance
+        .collection('orders')
+        .doc(id)
+        .collection('orderItems')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<OrderItem> orderItems = [];
+      for (DocumentSnapshot doc in snapshot.docs) {
+        // Cast doc.data() to Map<String, dynamic> safely
+        var data = doc.data();
+        if (data is Map<String, dynamic>) {
+          String? menuItemId = data['menuItemId'];
+          if (menuItemId != null) {
+            // Fetch the menuItem using the menuItemId
+            DocumentSnapshot menuItemDoc = await FirebaseFirestore.instance
+                .collection('menuItems')
+                .doc(menuItemId)
+                .get();
+            // Assume that menuItemDoc exists and contains correct data
+            MenuItem menuItem = MenuItem.fromFirestore(menuItemDoc);
+            OrderItem orderItem = OrderItem.fromFirestore(doc, menuItem);
+            orderItems.add(orderItem);
+          } else {
+            // Handle the case where menuItemId is null
+            // E.g., log an error or skip this particular OrderItem
+          }
+        } else {
+          // Handle the case where data is not a map
+          // This might involve logging or throwing an error
+        }
+      }
+      return orderItems;
+    });
+  }
+}
+
+// Model class for order items
+
+class OrderItem {
+  final String menuItemId;
+  final int quantity;
+  final double totalPrice;
+  final String notes;
+  final MenuItem menuItem; // Include MenuItem object
+
+  OrderItem({
+    required this.menuItemId,
+    required this.quantity,
+    required this.totalPrice,
+    required this.notes,
+    required this.menuItem, // Require MenuItem object
+  });
+
+  // Factory method to create OrderItem object from Firestore snapshot
+  factory OrderItem.fromFirestore(DocumentSnapshot doc, MenuItem menuItem) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+    return OrderItem(
+      menuItemId: data['menuItemId'],
+      quantity: data['quantity'],
+      totalPrice: data['totalPrice'],
+      notes: data['notes'],
+      menuItem: menuItem, // Pass MenuItem object
     );
   }
 }
+

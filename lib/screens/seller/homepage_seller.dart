@@ -5,6 +5,8 @@ import 'package:unicafe/screens/seller/menu_management.dart';
 import 'package:unicafe/screens/seller/update_seller.dart';
 import 'package:unicafe/screens/seller/schedule.dart';
 
+import 'order_management.dart';
+
 class SellerHomePage extends StatelessWidget {
   const SellerHomePage({super.key});
 
@@ -35,10 +37,14 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final sellerProvider = Provider.of<SellerProvider>(context);
+    final sellerID = sellerProvider.seller?.id ?? ''; // Get seller ID from SellerProvider
+
     List<Widget> pageOptions = <Widget>[
       const Home(), // Placeholder for HomePage widget
       MenuManagementPage(), // MenuPage widget
-      const Text('Order Page'), // OrderPage widget
+      OrderManagementPage(sellerID: sellerID),
+      //const Text('Order Page'), // OrderPage widget
       ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!),
       const UpdateSellerPage(), // AccountPage widget
     ];
