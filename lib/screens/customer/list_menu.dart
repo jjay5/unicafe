@@ -5,8 +5,8 @@ import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/screens/customer/item_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/cart.dart';
-
-import 'order_confirmation.dart';
+import 'package:unicafe/screens/customer/ratings_reviews.dart';
+import 'package:unicafe/screens/customer/order_confirmation.dart';
 
 class MenuPage extends StatelessWidget {
   final String sellerId;
@@ -48,9 +48,23 @@ class MenuPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(appBarTitle),
+            title:  Text(appBarTitle),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => _navigateToRatingsAndReviews(context, sellerId),
+                child: const Text('Ratings and Reviews',
+                  style: TextStyle(
+                    color: Colors.blue, // Makes it look like a hyperlink
+                    decoration: TextDecoration.underline, // Underline decoration
+                  ),
+                ),
+              ),
+            ],
           ),
-          body: FutureBuilder<List<MenuItem>>(
+
+          body:
+
+          FutureBuilder<List<MenuItem>>(
             future: fetchMenuItems(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -111,6 +125,14 @@ class MenuPage extends StatelessWidget {
         }),
         );
       },
+    );
+  }
+
+  void _navigateToRatingsAndReviews(BuildContext context, String sellerId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RatingsAndReviewsPage(sellerId: sellerId),
+      ),
     );
   }
 }

@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/screens/customer/add_feedback.dart';
 
-
-
 class CustomerOrdersPage extends StatelessWidget {
   const CustomerOrdersPage({super.key});
 
@@ -97,7 +95,7 @@ class CustomerOrdersPage extends StatelessWidget {
                           'Order Date: ${DateFormat('MMMM dd, yyyy \'at\' h:mm:ss a').format(data['orderDate'].toDate())}',
                         ),
                         SizedBox(height: 8.0),
-                        Row(
+                        const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
@@ -167,4 +165,3 @@ class CustomerOrdersPage extends StatelessWidget {
     }
   }
 }
-

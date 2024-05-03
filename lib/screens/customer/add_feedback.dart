@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FeedbackPage extends StatefulWidget {
   final String orderId;
 
-  const FeedbackPage({Key? key, required this.orderId}) : super(key: key);
+  const FeedbackPage({super.key, required this.orderId});
 
   @override
   _FeedbackPageState createState() => _FeedbackPageState();
@@ -147,8 +147,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
 
-
-
   Widget _buildCommentField() {
     return TextField(
       onChanged: (value) {
@@ -194,130 +192,3 @@ class _FeedbackPageState extends State<FeedbackPage> {
     }
   }
 }
-
-void main() {
-  runApp(const MaterialApp(
-    home: FeedbackPage(orderId: 'your_order_id_here'),
-  ));
-}
-
-
-/*
-
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class FeedbackPage extends StatefulWidget {
-  final String orderId;
-
-  const FeedbackPage({Key? key, required this.orderId}) : super(key: key);
-
-  @override
-  _FeedbackPageState createState() => _FeedbackPageState();
-}
-
-class _FeedbackPageState extends State<FeedbackPage> {
-  double _rating = 0.0;
-  String _comment = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Feedback'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Rate your order:',
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8.0),
-            _buildRatingBar(),
-            const SizedBox(height: 16.0),
-            const Text(
-              'Order Items:',
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8.0),
-            Expanded(
-              child: _buildOrderItems(),
-            ),
-            const SizedBox(height: 16.0),
-            const Text(
-              'Comments:',
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8.0),
-            _buildCommentField(),
-            const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: submitFeedback,
-              child: const Text('Submit Feedback'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRatingBar() {
-    return Row(
-      children: List.generate(5, (index) {
-        return IconButton(
-          onPressed: () {
-            setState(() {
-              _rating = index + 1.0;
-            });
-          },
-          icon: Icon(
-            index < _rating ? Icons.star : Icons.star_border,
-            color: Colors.orange,
-          ),
-        );
-      }),
-    );
-  }
-
-  // Other widget methods remain unchanged...
-
-  void submitFeedback() async {
-    try {
-      DocumentReference orderRef = FirebaseFirestore.instance
-          .collection('orders')
-          .doc(widget.orderId);
-
-      await orderRef.collection('feedback').add({
-        'rating': _rating,
-        'comment': _comment,
-        'timestamp': FieldValue.serverTimestamp(), // Adds a server-side timestamp
-      });
-
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Feedback submitted successfully!')),
-      );
-
-      // Optionally, navigate back or clear fields
-      setState(() {
-        _rating = 0.0;
-        _comment = '';
-      });
-    } catch (e) {
-      // Show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit feedback: $e')),
-      );
-    }
-  }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: FeedbackPage(orderId: 'your_order_id_here'), // Make sure to pass a valid orderId
-  ));
-}
-*/
