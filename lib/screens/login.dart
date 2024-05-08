@@ -1,15 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unicafe/screens/seller/add_menu.dart';
 import 'package:unicafe/screens/seller/homepage_seller.dart';
 import 'package:unicafe/screens/customer/homepage_customer.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/models/seller.dart';
-import 'package:unicafe/screens/seller/menu_management.dart';
 import 'package:unicafe/services/user_service.dart';
+import 'package:unicafe/screens/sign_up.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,19 +22,23 @@ class LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            const Text(
+              'UNICAFE',
+              style: TextStyle(
+                fontSize: 28, // Adjust the font size as needed
+                fontWeight: FontWeight.bold, // Make the text bold
+              ),
+            ),
+            const SizedBox(height: 30.0),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -53,6 +56,28 @@ class LoginPageState extends State<LoginPage> {
               },
               child: const Text('Login'),
             ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Not a User Yet?'),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignUpPage()),
+                    );
+                  },
+                  child: const Text(
+                    ' Sign Up Now',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue, // Make the text blue to indicate it's clickable
+                    ),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),
@@ -75,6 +100,7 @@ class LoginPageState extends State<LoginPage> {
         Customer? customer = await userService.fetchCustomerDetails(userCredential.user!.uid);
         if (customer != null) {
           // Set customer provider
+          if (!mounted) return;
           Provider.of<CustomerProvider>(context, listen: false).setCustomer(customer);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const CustomerHomePage()));
         } else {
@@ -87,6 +113,7 @@ class LoginPageState extends State<LoginPage> {
         Seller? seller = await userService.fetchSellerDetails(userCredential.user!.uid);
         if (seller != null) {
           // Set seller provider
+          if (!mounted) return;
           Provider.of<SellerProvider>(context, listen: false).setSeller(seller);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>  const SellerHomePage()));
         } else {
@@ -107,6 +134,7 @@ class LoginPageState extends State<LoginPage> {
         print('Login Error: $e');
       }
       // Show error message to the user
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Failed to login. Please check your credentials.'),
       ));

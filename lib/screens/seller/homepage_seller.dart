@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/seller.dart';
@@ -44,7 +45,6 @@ class HomePageState extends State<HomePage> {
       const Home(), // Placeholder for HomePage widget
       MenuManagementPage(), // MenuPage widget
       OrderManagementPage(sellerID: sellerID),
-      //const Text('Order Page'), // OrderPage widget
       ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!),
       const UpdateSellerPage(), // AccountPage widget
     ];
@@ -87,30 +87,155 @@ class HomePageState extends State<HomePage> {
   }
 }
 
-class Home extends StatelessWidget{
-  const Home({super.key});
+class OrderService {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  // Count of orders by status
+  Future<int> getCountOfOrdersByStatus(String sellerId, String status) async {
+    var snapshot = await _db.collection('orders')
+        .where('sellerID', isEqualTo: sellerId)
+        .where('orderStatus', isEqualTo: status)
+        .get();
+    return snapshot.docs.length;
+  }
+
+  // Count of feedbacks for all orders
+  Future<int> getCountOfFeedbacks(String sellerId) async {
+    int feedbackCount = 0;
+
+    // Fetch all orders for the given seller
+    var ordersSnapshot = await _db.collection('orders')
+        .where('sellerID', isEqualTo: sellerId)
+        .get();
+
+    // For each order, count the feedback entries
+    for (var orderDoc in ordersSnapshot.docs) {
+      var feedbackSnapshot = await orderDoc.reference.collection('feedback').get();
+      feedbackCount += feedbackSnapshot.docs.length;
+    }
+    return feedbackCount;
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final sellerProvider = Provider.of<SellerProvider>(context);
     final seller = sellerProvider.seller;
+    final orderService = Provider.of<OrderService>(context, listen: false);
+
+    if (seller == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Seller not found')),
+        body: const Center(child: Text('No seller selected')),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
-
-        title: seller != null
-            ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: const Text('My Dashboard'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${seller.stallName.toUpperCase()}, ${seller.stallLocation.toUpperCase()}',
-            style: const TextStyle(
-              fontSize: 30, // Change the font size
-              fontWeight: FontWeight.bold, // Make the text bold
-            ),)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  seller.stallName.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  seller.stallLocation.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 24, // You can adjust the font size as needed
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            _buildCard(
+              title: 'Orders To Prepare',
+              content: _buildOrderInfoTile(context, orderService, seller.id, 'pending'),
+            ),
+            const SizedBox(height: 16),
+            _buildCard(
+              title: 'Completed Orders',
+              content: _buildOrderInfoTile(context, orderService, seller.id, 'completed'),
+            ),
+            const SizedBox(height: 16),
+            _buildCard(
+              title: 'Reviews',
+              content: _buildFeedbackTile(context, orderService, seller.id),
+            ),
           ],
-        )
-            : const Text('Seller not found'),
+        ),
       ),
     );
   }
+
+  Widget _buildCard({required String title, required Widget content}) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            content,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderInfoTile(BuildContext context, OrderService orderService, String sellerId, String status) {
+    return FutureBuilder<int>(
+      future: orderService.getCountOfOrdersByStatus(sellerId, status),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Text(
+          '${snapshot.data ?? 0}',
+          style: const TextStyle(fontSize: 24),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeedbackTile(BuildContext context, OrderService orderService, String sellerId) {
+    return FutureBuilder<int>(
+      future: orderService.getCountOfFeedbacks(sellerId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Text(
+          '${snapshot.data ?? 0}',
+          style: const TextStyle(fontSize: 24),
+        );
+      },
+    );
+  }
 }
+
+
+
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:provider/provider.dart';
 
 class UpdateSellerPage extends StatefulWidget {
   const UpdateSellerPage({super.key});
@@ -26,7 +27,7 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
     _loadCurrentUser();
   }
 
-  _loadCurrentUser() async {
+  /*_loadCurrentUser() async {
     setState(() => _isLoading = true);
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
@@ -36,6 +37,22 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
       _stallLocationController.text = currentSeller.stallLocation;
       _phoneController.text = currentSeller.phone;
       _emailController.text = currentSeller.email;
+    }
+    setState(() => _isLoading = false);
+  }*/
+  _loadCurrentUser() async {
+    setState(() => _isLoading = true);
+    User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      var sellerSnapshot = await _firestore.collection('sellers').doc(currentUser.uid).get();
+      if (sellerSnapshot.exists) {
+        Seller currentSeller = Seller.fromFirestore(sellerSnapshot);
+        _stallNameController.text = currentSeller.stallName;
+        _stallLocationController.text = currentSeller.stallLocation;
+        _phoneController.text = currentSeller.phone;
+        _emailController.text = currentSeller.email;
+        Provider.of<SellerProvider>(context, listen: false).setSeller(currentSeller);
+      }
     }
     setState(() => _isLoading = false);
   }
@@ -71,7 +88,7 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
               enabled: false,
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            /*ElevatedButton(
               child: const Text('Update'),
               onPressed: () async {
                 setState(() => _isLoading = true);
@@ -86,7 +103,31 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
                 setState(() => _isLoading = false);
 
               },
+            ),*/
+            ElevatedButton(
+              child: const Text('Update'),
+              onPressed: () async {
+                setState(() => _isLoading = true);
+
+                // Construct a new Seller object with updated data
+                Seller updatedSeller = Seller(
+                  id: _auth.currentUser!.uid,
+                  stallName: _stallNameController.text.trim(),
+                  stallLocation: _stallLocationController.text.trim(),
+                  phone: _phoneController.text.trim(),
+                  email: _emailController.text, // Assuming unchanged
+                );
+
+                // Update Firestore with the new data
+                await _firestore.collection('sellers').doc(_auth.currentUser!.uid).update(updatedSeller.toMap());
+
+                // Update the provider with new seller data
+                Provider.of<SellerProvider>(context, listen: false).setSeller(updatedSeller);
+
+                setState(() => _isLoading = false);
+              },
             ),
+
           ],
         ),
       ),
