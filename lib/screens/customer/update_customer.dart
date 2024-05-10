@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/customer.dart';
+import 'package:unicafe/screens/login.dart';
 
 class UpdateCustomerPage extends StatefulWidget {
   const UpdateCustomerPage({super.key});
@@ -39,11 +40,27 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
     setState(() => _isLoading = false);
   }
 
+  _logout() async {
+    await _auth.signOut();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Update Customer Account'),
+        title: const Text('My Account'),
+        actions: <Widget>[
+          TextButton.icon(
+            label: const Text('Logout', style: TextStyle(color: Colors.blueGrey, fontSize: 16)),
+            icon: const Icon(Icons.logout, color: Colors.blueGrey),
+            onPressed: _logout,
+          ),
+
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

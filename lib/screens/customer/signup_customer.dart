@@ -4,116 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/screens/login.dart';
 
-/*
-class SignUpCustomerPage extends StatelessWidget {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _reEnterPasswordController = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  SignUpCustomerPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customer Sign Up'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-              ),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
-              ),
-              TextField(
-                controller: _reEnterPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Re-enter Password'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                child: const Text('Sign Up'),
-                onPressed: () async {
-                  try {
-                    // Check if passwords match
-                    if (_passwordController.text.trim() != _reEnterPasswordController.text.trim()) {
-                      throw 'Passwords do not match';
-                    }
-
-                    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                      email: _emailController.text.trim(),
-                      password: _passwordController.text.trim(),
-                    );
-
-                    Customer newCustomer = Customer(
-                      id: userCredential.user!.uid,
-                      name: _nameController.text.trim(),
-                      phone: _phoneController.text.trim(),
-                      email: _emailController.text.trim(),
-                    );
-
-                    await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
-
-                    // Notify user and navigate to login page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Signup successful, please log in.'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                    // After successful signup
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-
-                  } catch (e) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Error'),
-                        content: Text(e.toString()),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-             ),
-           ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-*/
-
 class SignUpCustomerPage extends StatefulWidget {
   const SignUpCustomerPage({super.key});
 
@@ -131,14 +21,69 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_updateValidation);
+    _phoneController.addListener(_updateValidation);
+    _emailController.addListener(_updateValidation);
+    _passwordController.addListener(_updateValidation);
+    _reEnterPasswordController.addListener(_updateValidation);
+  }
 
-  String? _validatePasswordConfirmation(String? value) {
-    if (value != _passwordController.text.trim()) {
-      return 'Passwords do not match';
+  @override
+  void dispose() {
+    _nameController.removeListener(_updateValidation);
+    _phoneController.removeListener(_updateValidation);
+    _emailController.removeListener(_updateValidation);
+    _passwordController.removeListener(_updateValidation);
+    _reEnterPasswordController.removeListener(_updateValidation);
+
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _reEnterPasswordController.dispose();
+
+    super.dispose();
+  }
+
+  void _updateValidation() {
+    setState(() {}); // Update UI when fill the form
+  }
+
+  String? _validateName(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter your name';
     }
     return null;
   }
 
+  String? _validatePhone(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter your phone number';
+    }
+    return null;
+  }
+
+  //Email validation
+  bool _isValidEmail(String email) {
+    // Regular expression for email validation
+    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  String? _validateEmail(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!_isValidEmail(value)) {
+      return 'Please enter a valid email';
+    }
+    return null;
+  }
+
+  //Password validation
   bool _isAtLeast6Characters = false;
   bool _hasUpperCase = false;
   bool _hasLowerCase = false;
@@ -155,170 +100,54 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customer Sign Up'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                ),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
-                ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  onChanged: _validatePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    suffixIcon: _passwordController.text.isEmpty
-                        ? null
-                        : Icon(
-                      _isAtLeast6Characters && _hasUpperCase && _hasLowerCase && _hasNumber && _hasSymbol
-                          ? Icons.check
-                          : Icons.error,
-                      color: _isAtLeast6Characters && _hasUpperCase && _hasLowerCase && _hasNumber && _hasSymbol
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                    hintText: 'Enter your password',
-                  ),
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password at least 6 characters with \nupper case, lower case, number, and symbol';
-                    }
-                    if (!_isAtLeast6Characters) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    if (!_hasUpperCase) {
-                      return 'Password must contain at least one uppercase letter';
-                    }
-                    if (!_hasLowerCase) {
-                      return 'Password must contain at least one lowercase letter';
-                    }
-                    if (!_hasNumber) {
-                      return 'Password must contain at least one number';
-                    }
-                    if (!_hasSymbol) {
-                      return 'Password must contain at least one symbol: !@#\$%&*';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _reEnterPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Re-enter Password'),
-                  validator: _validatePasswordConfirmation,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  child: const Text('Sign Up'),
-                  onPressed: () async {
-                      try {
-                        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text.trim(),
-                        );
+  List<String?> _validatePass(String? value) {
+    List<String?> errors = [];
 
-                        Customer newCustomer = Customer(
-                          id: userCredential.user!.uid,
-                          name: _nameController.text.trim(),
-                          phone: _phoneController.text.trim(),
-                          email: _emailController.text.trim(),
-                        );
-
-                        await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
-
-                        // Notify user and navigate to login page
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Signup successful, please log in.'),
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                        // After successful signup
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
-                        );
-
-                      } catch (e) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Error'),
-                            content: Text(e.toString()),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    }
-
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-
-/*
-
-class SignUpCustomerPage extends StatelessWidget {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _reEnterPasswordController = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  SignUpCustomerPage({super.key});
-
-  bool _isPasswordValid(String password) {
-    // Regex to validate the password
-    RegExp regex = RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$@!%*^?&()])[A-Za-z\d#$@!%*^?&()]{6,}$',
-    );
-    return regex.hasMatch(password);
+    if (!_isAtLeast6Characters) {
+      errors.add('Password must be at least 6 characters');
+    }
+    if (!_hasUpperCase) {
+      errors.add('Password must contain at least one uppercase letter');
+    }
+    if (!_hasLowerCase) {
+      errors.add('Password must contain at least one lowercase letter');
+    }
+    if (!_hasNumber) {
+      errors.add('Password must contain at least one number');
+    }
+    if (!_hasSymbol) {
+      errors.add('Password must contain at least one symbol: !@#\$%&*');
+    }
+    return errors;
   }
 
   String? _validatePasswordConfirmation(String? value) {
+    if (value!.isEmpty) {
+      return 'Please re-enter your password';
+    }
     if (value != _passwordController.text.trim()) {
       return 'Passwords do not match';
     }
     return null;
   }
 
+  Widget buildPasswordRequirements() {
+    List<String?> errors = _validatePass(_passwordController.text);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (errors.isNotEmpty) ...errors.map((error) => Row(
+          children: [
+            const Icon(Icons.error, color: Colors.red),
+            const SizedBox(width: 5),
+            Flexible(child: Text(error ?? '', style: const TextStyle(color: Colors.red))),
+          ],
+        )),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -335,114 +164,133 @@ class SignUpCustomerPage extends StatelessWidget {
               children: <Widget>[
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    hintText: 'Enter your name',
+                    suffixIcon: _nameController.text.isEmpty
+                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        : const Icon(Icons.check, color: Colors.green),  // Check icon if not empty
+                  ),
+                  validator: _validateName,
                 ),
                 TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: 'Enter your phone number',
+                    suffixIcon: _phoneController.text.isEmpty
+                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        : const Icon(Icons.check, color: Colors.green),
+                  ),
+                  validator: _validatePhone,
                 ),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  onChanged: _validatePassword,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    suffixIcon: _passwordController.text.isEmpty
-                        ? null
-                        : Icon(
-                      _isAtLeast6Characters && _hasUpperCase && _hasLowerCase && _hasNumber && _hasSymbol
-                          ? Icons.check
-                          : Icons.error,
-                      color: _isAtLeast6Characters && _hasUpperCase && _hasLowerCase && _hasNumber && _hasSymbol
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                    hintText: 'Enter your password',
-                    border: OutlineInputBorder(),
+                    labelText: 'Email',
+                    hintText: 'Enter your email',
+                    suffixIcon: _emailController.text.isEmpty
+                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        : _isValidEmail(_emailController.text)
+                          ? const Icon(Icons.check, color: Colors.green) // Check icon if email is valid
+                          : const Icon(Icons.error, color: Colors.red),
                   ),
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (!_isAtLeast6Characters) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    if (!_hasUpperCase) {
-                      return 'Password must contain at least one uppercase letter';
-                    }
-                    if (!_hasLowerCase) {
-                      return 'Password must contain at least one lowercase letter';
-                    }
-                    if (!_hasNumber) {
-                      return 'Password must contain at least one number';
-                    }
-                    if (!_hasSymbol) {
-                      return 'Password must contain at least one symbol: !@#\$%&*';
-                    }
-                    return null;
-                  },
+                  validator: _validateEmail,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      onChanged: (value) {
+                        setState(() {
+                          _validatePassword(value); // This will now also trigger UI updates
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                        suffixIcon: _passwordController.text.isNotEmpty &&
+                            _isAtLeast6Characters &&
+                            _hasUpperCase &&
+                            _hasLowerCase &&
+                            _hasNumber &&
+                            _hasSymbol
+                            ? const Icon(Icons.check, color: Colors.green) // Check icon if all requirements met
+                            : _passwordController.text.isEmpty
+                            ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                            : const Icon(Icons.error, color: Colors.red), // if requirements not met
+
+                      ),
+                      validator: (value) => _validatePass(value).isNotEmpty ? 'See requirements below' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    buildPasswordRequirements(), // Display all password requirement dynamically
+                  ],
                 ),
                 TextFormField(
                   controller: _reEnterPasswordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Re-enter Password'),
+                  decoration: InputDecoration(
+                    labelText: 'Re-enter Password',
+                    hintText: 'Re-enter password',
+                    suffixIcon: _reEnterPasswordController.text.isEmpty
+                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        : _reEnterPasswordController.text == _passwordController.text
+                          ? const Icon(Icons.check, color: Colors.green) // Check icon if passwords match
+                          : const Icon(Icons.error, color: Colors.red),
+                  ),
                   validator: _validatePasswordConfirmation,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   child: const Text('Sign Up'),
                   onPressed: () async {
-                    if (Form.of(context)!.validate()) {
-                      try {
-                        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text.trim(),
-                        );
+                    try {
+                      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+                        email: _emailController.text.trim(),
+                        password: _passwordController.text.trim(),
+                      );
+                      Customer newCustomer = Customer(
+                        id: userCredential.user!.uid,
+                        name: _nameController.text.trim(),
+                        phone: _phoneController.text.trim(),
+                        email: _emailController.text.trim(),
+                      );
 
-                        Customer newCustomer = Customer(
-                          id: userCredential.user!.uid,
-                          name: _nameController.text.trim(),
-                          phone: _phoneController.text.trim(),
-                          email: _emailController.text.trim(),
-                        );
+                      await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
 
-                        await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
+                      // Notify user and navigate to login page
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Signup successful, please log in.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      // After successful signup
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                      );
 
-                        // Notify user and navigate to login page
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Signup successful, please log in.'),
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                        // After successful signup
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-
-                      } catch (e) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Error'),
-                            content: Text(e.toString()),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+                    } catch (e) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Error'),
+                          content: Text(e.toString()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
                     }
-                  },
+                  }
                 ),
               ],
             ),
@@ -452,4 +300,3 @@ class SignUpCustomerPage extends StatelessWidget {
     );
   }
 }
-*/
