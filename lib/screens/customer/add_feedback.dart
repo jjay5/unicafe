@@ -7,10 +7,10 @@ class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key, required this.orderId});
 
   @override
-  _FeedbackPageState createState() => _FeedbackPageState();
+  FeedbackPageState createState() => FeedbackPageState();
 }
 
-class _FeedbackPageState extends State<FeedbackPage> {
+class FeedbackPageState extends State<FeedbackPage> {
   double _rating = 0.0;
   String _comment = '';
 
@@ -100,52 +100,28 @@ class _FeedbackPageState extends State<FeedbackPage> {
             DocumentSnapshot doc = snapshot.data!.docs[index];
             Map<String, dynamic> itemData = doc.data() as Map<String, dynamic>;
 
-            // Retrieve menuItemId from orderItem
-            String menuItemId = itemData['menuItemId'];
+            // Using itemName directly from the orderItems document
+            String itemName = itemData['itemName'];
+            int quantity = itemData['quantity'];
+            String notes = itemData['notes'] ?? 'N/A';
 
-            // Retrieve itemName from menuItemId in menuItems collection
-            return FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).get(),
-              builder: (context, itemSnapshot) {
-                if (itemSnapshot.connectionState == ConnectionState.waiting) {
-                  return ListTile(
-                    title: const Text('Loading item name...'),
-                    subtitle: Text('Quantity: ${itemData['quantity']}'),
-                  );
-                }
-                if (itemSnapshot.hasError) {
-                  return ListTile(
-                    title: const Text('Error loading item name'),
-                    subtitle: Text('Quantity: ${itemData['quantity']}'),
-                  );
-                }
-                if (!itemSnapshot.hasData) {
-                  return ListTile(
-                    title: const Text('Item name not found'),
-                    subtitle: Text('Quantity: ${itemData['quantity']}'),
-                  );
-                }
-                String itemName = itemSnapshot.data!['itemName'];
-
-                // Return ListTile with itemName and other details
-                return ListTile(
-                  title: Text(itemName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Quantity: ${itemData['quantity']}'),
-                      // Additional lines can be added here:
-                      Text('Notes: ${itemData['notes'] ?? 'N/A'}'),
-                    ],
-                  ),
-                );
-              },
+            // Return ListTile with itemName and other details
+            return ListTile(
+              title: Text(itemName),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Quantity: $quantity'),
+                  Text('Notes: $notes'),
+                ],
+              ),
             );
           },
         );
       },
     );
   }
+
 
   Widget _buildCommentField() {
     return TextField(
@@ -175,6 +151,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       });
 
       // Show a success message
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Feedback submitted successfully!')),
       );
