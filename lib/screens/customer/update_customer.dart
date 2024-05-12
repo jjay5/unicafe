@@ -42,6 +42,7 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
 
   _logout() async {
     await _auth.signOut();
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -59,7 +60,6 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
             icon: const Icon(Icons.logout, color: Colors.blueGrey),
             onPressed: _logout,
           ),
-
         ],
       ),
       body: _isLoading

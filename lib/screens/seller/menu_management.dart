@@ -3,11 +3,13 @@ import 'package:unicafe/screens/seller/list_menu_management.dart';
 import 'package:unicafe/screens/seller/delist_menu_management.dart';
 
 class MenuManagementPage extends StatefulWidget {
+  const MenuManagementPage({super.key});
+
   @override
-  _MenuManagementPageState createState() => _MenuManagementPageState();
+  MenuManagementPageState createState() => MenuManagementPageState();
 }
 
-class _MenuManagementPageState extends State<MenuManagementPage> {
+class MenuManagementPageState extends State<MenuManagementPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(

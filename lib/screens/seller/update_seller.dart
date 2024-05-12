@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:provider/provider.dart';
+import 'package:unicafe/screens/login.dart';
 
 class UpdateSellerPage extends StatefulWidget {
   const UpdateSellerPage({super.key});
@@ -51,17 +52,34 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
         _stallLocationController.text = currentSeller.stallLocation;
         _phoneController.text = currentSeller.phone;
         _emailController.text = currentSeller.email;
+        if (!mounted) return;
         Provider.of<SellerProvider>(context, listen: false).setSeller(currentSeller);
       }
     }
     setState(() => _isLoading = false);
   }
 
+  _logout() async {
+    await _auth.signOut();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Update Seller Account'),
+        title: const Text('My Account'),
+        actions: <Widget>[
+          TextButton.icon(
+            label: const Text('Logout', style: TextStyle(color: Colors.blueGrey, fontSize: 16)),
+            icon: const Icon(Icons.logout, color: Colors.blueGrey),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -122,12 +140,12 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
                 await _firestore.collection('sellers').doc(_auth.currentUser!.uid).update(updatedSeller.toMap());
 
                 // Update the provider with new seller data
+                if (!context.mounted) return;
                 Provider.of<SellerProvider>(context, listen: false).setSeller(updatedSeller);
 
                 setState(() => _isLoading = false);
               },
             ),
-
           ],
         ),
       ),

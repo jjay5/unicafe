@@ -94,60 +94,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Provider.of<CartProvider>(context, listen: false).removeCartItem(index);
   }
 
-/*
-  void _confirmOrder(BuildContext context) async {
-    try {
-      // Get the current user ID
-      String customerID = FirebaseAuth.instance.currentUser!.uid;
-
-      // Create a new order object
-      Orders order = Orders(
-        id: null,
-        customerID: customerID,
-        orderDate: DateTime.now(),
-        orderStatus: 'pending',
-        totalAmount: _calculateTotal(),
-        paymentMethod: _selectedOption ?? '',
-        pickupMethod: _selectedOptionPayment ?? '',
-        pickupTime: _selectedTime ?? '',
-        sellerID: widget.seller.id,
-        //items: _cartItems, // Use the cart items directly
-      );
-
-      // Reference to Firestore
-      final firestore = FirebaseFirestore.instance;
-
-      // Add the order to the 'orders' collection
-      DocumentReference orderRef =
-      await firestore.collection('orders').add(order.toMap());
-
-      // Iterate through cart items and add each to the 'orderItems' sub-collection
-      for (var cartItem in _cartItems) {
-        // Generate a unique ID for each order item based on menuItemId and notes
-        String orderItemId = '${cartItem.item.id}_${cartItem.note ?? ''}';
-
-        await orderRef.collection('orderItems').doc(orderItemId).set({
-          'menuItemId': cartItem.item.id,
-          'quantity': cartItem.quantity,
-          'totalPrice': cartItem.totalItemPrice,
-          'notes': cartItem.note ?? '',
-        });
-      }
-
-      // Show a success message or navigate to a success page
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed successfully!')),
-      );
-
-      // Optionally, clear the cart after order is placed
-      //Provider.of<CartProvider>(context, listen: false).clearCart();
-    } catch (e) {
-      // Handle errors (e.g., show an error message)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error placing order: $e')),
-      );
-    }
-  }*/
   String generateOrderID(int orderCounter) {
     return orderCounter.toString().padLeft(3, '0');
   }
@@ -167,7 +113,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
     return orderCounter;
   }
-
 
   void _confirmOrder(BuildContext context) async {
     try {
@@ -206,10 +151,12 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
           'quantity': cartItem.quantity,
           'totalPrice': cartItem.totalItemPrice,
           'notes': cartItem.note,
+          'itemName': cartItem.item.itemName,
         });
       }
 
       // Show a success message or navigate to a success page
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Order placed successfully!')),
       );
@@ -223,9 +170,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       );
     }
   }
-
-
-
 
   void _showPickupTimeSelection(BuildContext context) {
     showModalBottomSheet(
@@ -388,44 +332,42 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                                 });
                               },
                             ),
-
-
                             const Text('Card'),
                           ],
                         ),
                         if (_showCardDetails)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Card Number',
-                                    border: OutlineInputBorder(), // Adds a border around the input field
-                                    contentPadding: EdgeInsets.all(10), // Adds padding inside the input field
-                                  ),
-                                  keyboardType: TextInputType.number,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Card Number',
+                                  border: OutlineInputBorder(), // Adds a border around the input field
+                                  contentPadding: EdgeInsets.all(10), // Adds padding inside the input field
                                 ),
-                                const SizedBox(height: 8), // Adds space between input fields
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Expiration Date (MM/YY)',
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 8), // Adds space between input fields
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Expiration Date (MM/YY)',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'CVV',
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
-                                  keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'CVV',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
-                              ],
-                            ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   ),

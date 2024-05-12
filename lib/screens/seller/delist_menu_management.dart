@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +11,10 @@ class MenuDelistPage extends StatefulWidget {
   const MenuDelistPage({super.key});
 
   @override
-  _MenuDelistPageState createState() => _MenuDelistPageState();
+  MenuDelistPageState createState() => MenuDelistPageState();
 }
 
-class _MenuDelistPageState extends State<MenuDelistPage> {
+class MenuDelistPageState extends State<MenuDelistPage> {
   @override
   Widget build(BuildContext context) {
     final seller = Provider.of<SellerProvider>(context).seller;
@@ -63,7 +64,7 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
                     shape: BoxShape.rectangle,
                     image: DecorationImage(
                       fit: BoxFit.cover,
-                      image: NetworkImage('https://th.bing.com/th/id/OIP.DSvrEGChdMh67YH0GPo4TQAAAA?rs=1&pid=ImgDetMain'),
+                      image: AssetImage('assets/images/default_image.png'),
                     ),
                   ),
                 ),
@@ -74,6 +75,20 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    ElevatedButton(
+                      //icon: Icon(Icons.delete),
+                      onPressed: () async {
+                        await publishMenuItem(menuItem.id!);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Item published successfully'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: const Text('Publish'),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
@@ -83,13 +98,45 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
                         );
                       },
                     ),
-                    ElevatedButton(
-                      //icon: Icon(Icons.delete),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
                       onPressed: () async {
-                        await publishMenuItem(menuItem.id!);
-                        // No need to manually refresh, StreamBuilder will react to the data change
+                        // Confirm dialog before deleting
+                        bool confirmDelete = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Confirm Delete'),
+                              content: const Text('Are you sure you want to delete this item?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: const Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(false); // Dismiss and return false
+                                  },
+                                ),
+                                TextButton(
+                                  child: const Text('Delete'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true); // Dismiss and return true
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirmDelete) {
+                          await deleteMenuItem(menuItem.id!);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Item deleted successfully'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       },
-                      child: const Text('Publish'),
                     ),
                   ],
                 ),
@@ -103,11 +150,11 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
           // Action to navigate to the add new item page
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddMenuItemPage()), // Adjust this to your actual "Add New Item" page
+            MaterialPageRoute(builder: (context) => const AddMenuItemPage()), // Adjust this to your actual "Add New Item" page
           );
         },
-        child: const Icon(Icons.add),
         tooltip: 'Add New Item',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -117,10 +164,17 @@ class _MenuDelistPageState extends State<MenuDelistPage> {
       await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).update({'availability': true});
       // The UI will automatically update due to the StreamBuilder reacting to the data change
     } catch (e) {
-      print('Error delisting menu item: $e');
+      if (kDebugMode) {
+        print('Error delisting menu item: $e');
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Error delisting menu item: $e'),
       ));
     }
+  }
+
+  Future<void> deleteMenuItem(String id) async {
+    await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
   }
 }

@@ -7,32 +7,72 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
-import 'package:unicafe/screens/seller/menu_management.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddMenuItemPage extends StatefulWidget {
+  const AddMenuItemPage({super.key});
+
   @override
-  _AddMenuItemPageState createState() => _AddMenuItemPageState();
+  AddMenuItemPageState createState() => AddMenuItemPageState();
 }
 
-class _AddMenuItemPageState extends State<AddMenuItemPage> {
+class AddMenuItemPageState extends State<AddMenuItemPage> {
   final TextEditingController _itemNameController = TextEditingController();
   final TextEditingController _itemCategoryController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _durationToCookController = TextEditingController();
-  File? _image; // To store the picked image file
+
+  File? _image;
   final picker = ImagePicker();
+
+  String? _selectedCategory;
+  List<String> _categories = [];
+  // Predefined category list
+  List<String> predefinedCategories = ['Breakfast', 'Lunch & Dinner', 'Soup', 'Snacks', 'Desserts', 'Beverages', 'Special Deals'];
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Key for the form
+
+  @override
+  void initState() {
+    super.initState();
+    loadCategories();
+  }
+
+  void loadCategories() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(user.uid)
+          .collection('categories')
+          .get();
+      if (mounted) {
+        setState(() {
+          _categories = querySnapshot.docs.map((doc) => doc.id).toList();
+        });
+      }
+    }
+  }
+
+  Future<void> addCustomCategory(String newCategory) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(user.uid)
+          .collection('categories')
+          .doc(newCategory)
+          .set({});
+      loadCategories(); // Reload categories after adding a new one
+    }
+  }
 
   Future getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
+    if (pickedFile != null) {
+      setState(() {
         _image = File(pickedFile.path);
-      } else {
-        if (kDebugMode) {
-          print('No image selected.');
-        }
-      }
-    });
+      });
+    }
   }
 
   Future<String?> uploadFile(File image) async {
@@ -42,7 +82,9 @@ class _AddMenuItemPageState extends State<AddMenuItemPage> {
       await storage.ref(fileName).putFile(image);
       return await storage.ref(fileName).getDownloadURL();
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
       return null;
     }
   }
@@ -50,81 +92,202 @@ class _AddMenuItemPageState extends State<AddMenuItemPage> {
   @override
   Widget build(BuildContext context) {
     final seller = Provider.of<SellerProvider>(context).seller;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Item'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Added to ensure the form is scrollable
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const Text('Item Photo'),
-              if (_image != null)
-                Image.file(_image!),
-              ElevatedButton(
-                onPressed: getImage,
-                child: const Text('Add Photo'),
-              ),
-              TextField(
-                controller: _itemNameController,
-                decoration: const InputDecoration(labelText: 'Item Name'),
-              ),
-              TextField(
-                controller: _itemCategoryController,
-                decoration: const InputDecoration(labelText: 'Item Category'),
-              ),
-              TextField(
-                controller: _priceController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Price'),
-              ),
-              TextField(
-                controller: _durationToCookController,
-                decoration: const InputDecoration(labelText: 'Duration to Cook'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: seller == null ? null : () async {
-                  String? itemPhotoUrl;
-                  if (_image != null) {
-                    itemPhotoUrl = await uploadFile(_image!);
-                  }
-                  MenuItem newMenuItem = MenuItem(
-                    id: null,
-                    sellerID: seller.id, // Use the seller ID from the provider
-                    itemPhoto: itemPhotoUrl ?? '',
-                    itemName: _itemNameController.text.trim(),
-                    itemCategory: _itemCategoryController.text.trim(),
-                    price: double.parse(_priceController.text),
-                    durationToCook: _durationToCookController.text.trim(),
-                    availability: true,
-                  );
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const Text('Item Photo'),
+                if (_image != null)
+                  Align(
+                    child: Image.file(
+                      _image!,
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: getImage,
+                  child: Text(_image == null ? 'Add Photo' : 'Change Photo'),
+                ),
+                TextField(
+                  controller: _itemNameController,
+                  decoration: const InputDecoration(labelText: 'Item Name'),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    DropdownButtonFormField<String>(
+                      key: UniqueKey(),
+                      value: _selectedCategory,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedCategory = newValue;
+                          if (newValue == 'Custom') {
+                            _itemCategoryController.clear();
+                          }
+                        });
+                      },
+                      items: [...predefinedCategories, ..._categories, 'Custom'].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                        value: value,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(value),
+                            if (!predefinedCategories.contains(value) && value != 'Custom') // Add delete icon for custom categories only
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  bool confirmDelete = await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Confirm Delete'),
+                                        content: const Text('Are you sure you want to delete this category?'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(false); // Dismiss dialog and return false
+                                            },
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(true); // Dismiss dialog and return true
+                                            },
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
 
-                  await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
-                    newMenuItem = MenuItem(
-                      id: docRef.id,
-                      sellerID: newMenuItem.sellerID,
-                      itemPhoto: newMenuItem.itemPhoto,
-                      itemName: newMenuItem.itemName,
-                      itemCategory: newMenuItem.itemCategory,
-                      price: newMenuItem.price,
-                      durationToCook: newMenuItem.durationToCook,
-                      availability: newMenuItem.availability,
+                                  if (confirmDelete) {
+                                    User? user = FirebaseAuth.instance.currentUser;
+                                    if (user != null) {
+                                      try {
+                                        await FirebaseFirestore.instance
+                                            .collection('sellers')
+                                            .doc(user.uid)
+                                            .collection('categories')
+                                            .doc(value)
+                                            .delete();
+
+                                        setState(() {
+                                          _categories.remove(value);
+                                          _selectedCategory = null; // Clear selected category to force refresh
+                                        });
+                                      } catch (e) {
+                                        if (kDebugMode) {
+                                          print('Error deleting category: $e');
+                                        }
+                                        // Handle error, show message to the user
+                                      }
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      decoration: const InputDecoration(
+                        labelText: 'Item Category',
+                      ),
+                    ),
+                    if (_selectedCategory == 'Custom') ...[
+                      TextField(
+                        controller: _itemCategoryController,
+                        decoration: const InputDecoration(
+                          labelText: 'Enter Custom Category',
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                TextField(
+                  controller: _priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Price',
+                    prefixText: 'RM ', // Add prefix text
+                  ),
+                ),
+                TextField(
+                  controller: _durationToCookController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Duration to Cook',
+                    suffixText: ' Minutes',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: seller == null ? null : () async {
+                    var newCategory = _itemCategoryController.text.trim();
+                    if (newCategory.isNotEmpty && !_categories.contains(newCategory)) {
+                      addCustomCategory(newCategory);
+                      _selectedCategory = newCategory;// Add the custom category
+                    }
+
+                    String? itemPhotoUrl;
+
+                    if (_image != null) {
+                      itemPhotoUrl = await uploadFile(_image!);
+                    }
+
+                    MenuItem newMenuItem = MenuItem(
+                      id: null,
+                      sellerID: seller.id, // Use the seller ID from the provider
+                      itemPhoto: itemPhotoUrl ?? '',
+                      itemName: _itemNameController.text.trim(),
+                      //itemCategory: _itemCategoryController.text.trim(),
+                      itemCategory: _selectedCategory ?? '',
+                      price: double.parse(_priceController.text),
+                      durationToCook: _durationToCookController.text.trim(),
+                      availability: true,
                     );
-                    Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
-                  });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MenuManagementPage()),
-                  );
-                },
-                child: const Text('Add Item'),
-              ),
-            ],
-          ),
+
+                    await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
+                      newMenuItem = MenuItem(
+                        id: docRef.id,
+                        sellerID: newMenuItem.sellerID,
+                        itemPhoto: newMenuItem.itemPhoto,
+                        itemName: newMenuItem.itemName,
+                        itemCategory: newMenuItem.itemCategory,
+                        price: newMenuItem.price,
+                        durationToCook: newMenuItem.durationToCook,
+                        availability: newMenuItem.availability,
+                      );
+                      Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
+                    });
+
+                    // Show a SnackBar to notify the user
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Item added successfully'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    // Navigate back to the previous page
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Add Item'),
+                ),
+              ],
+            ),
+          )
         ),
       ),
     );

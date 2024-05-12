@@ -24,7 +24,7 @@ class FeedbackPageState extends State<FeedbackPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Added SingleChildScrollView here
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

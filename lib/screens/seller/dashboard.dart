@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/screens/seller/homepage_seller.dart';
 import 'package:unicafe/models/seller.dart';
+import 'package:unicafe/screens/seller/view_feedback.dart';
 
 class Dashboard extends StatelessWidget {
 
@@ -70,7 +71,11 @@ class Dashboard extends StatelessWidget {
                 title: 'Reviews',
                 content: _buildFeedbackTile(context, orderService, seller.id),
                 onTap: () {
-                  // Navigate to a reviews page or another relevant page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SellerFeedbackPage(sellerId: seller.id)),
+                  );
+
                 },
               ),
             ],
@@ -106,7 +111,6 @@ class Dashboard extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildOrderInfoTile(BuildContext context, OrderService orderService, String sellerId, String status) {
     return FutureBuilder<int>(

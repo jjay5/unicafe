@@ -30,7 +30,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             widget.menuItem.itemPhoto != null
                 ? Image.network(
               widget.menuItem.itemPhoto!,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 // This will only be reached if the URL is not null but the image failed to load
                 return Image.asset('assets/images/default_image.png'); // Fallback asset image if network image fails to load
