@@ -101,13 +101,13 @@ class Orders {
 }
 
 // Model class for order items
-
 class OrderItem {
   final String menuItemId;
   final int quantity;
   final double totalPrice;
   final String notes;
-  final MenuItem menuItem; // Include MenuItem object
+  final MenuItem menuItem;// Include MenuItem object
+  final String itemName;// Use this for feedback, if seller delete the menu item it still can display the item name
 
   OrderItem({
     required this.menuItemId,
@@ -115,6 +115,8 @@ class OrderItem {
     required this.totalPrice,
     required this.notes,
     required this.menuItem, // Require MenuItem object
+
+    required this.itemName,
   });
 
   // Factory method to create OrderItem object from Firestore snapshot
@@ -127,7 +129,7 @@ class OrderItem {
       totalPrice: data['totalPrice'],
       notes: data['notes'],
       menuItem: menuItem, // Pass MenuItem object
+      itemName: data['itemName'],
     );
   }
 }
-
