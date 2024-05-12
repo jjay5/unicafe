@@ -21,39 +21,31 @@ class RatingsAndReviewsPage extends StatelessWidget {
           .get();
       String customerName = customerSnapshot.exists ? customerSnapshot.data()!['name'] : 'Unknown Customer';
 
-      // Retrieve order items
+      // Retrieve order items directly using stored item names and aggregate them by name and notes
       var orderItemsSnapshot = await orderDoc.reference.collection('orderItems').get();
-      Map<String, Map<String, dynamic>> itemsSummary = {}; // Use a map to collect item summaries
+      Map<String, Map<String, dynamic>> itemSummary = {};
       for (var orderItemDoc in orderItemsSnapshot.docs) {
-        var menuItemId = orderItemDoc.data()['menuItemId'];
+        var itemName = orderItemDoc.data()['itemName'];
         var quantity = orderItemDoc.data()['quantity'];
-        var note = orderItemDoc.data()['note'] ?? ""; // Assume there is a 'note' field you want to track
+        var note = orderItemDoc.data()['note'] ?? "";
 
-        // Fetch the itemName from the menuItems collection using menuItemId
-        var menuItemDoc = await FirebaseFirestore.instance.collection('menuItems').doc(menuItemId).get();
-        if (menuItemDoc.exists) {
-          var itemName = menuItemDoc.data()!['itemName'];
-          // Check if item already added to the summary
-          if (!itemsSummary.containsKey(menuItemId)) {
-            itemsSummary[menuItemId] = {
-              'name': itemName,
-              'totalQuantity': 0,
-              'notes': []
-            };
-          }
-          itemsSummary[menuItemId]?['totalQuantity'] += quantity;
-          if (note.isNotEmpty) {
-            itemsSummary[menuItemId]?['notes'].add(note);
-          }
+        String key = "$itemName$note"; // Combine item name and note as a key for uniqueness
+        if (!itemSummary.containsKey(key)) {
+          itemSummary[key] = {
+            'itemName': itemName,
+            'quantity': 0,
+            'note': note,
+          };
         }
+        itemSummary[key]?['quantity'] += quantity;
       }
 
-      // Format order items to string list
-      List<String> orderItems = itemsSummary.values.map((item) {
-        var notesString = item['notes'].isEmpty ? "" : " (Notes: ${item['notes'].join(', ')})";
-        return "${item['name']} x ${item['totalQuantity']}$notesString";
+      List<String> orderItems = itemSummary.values.map((item) {
+        String notePart = item['note'].isNotEmpty ? " (Notes: ${item['note']})" : "";
+        return "${item['itemName']} x ${item['quantity']}$notePart";
       }).toList();
 
+      // Collect feedback with associated customer name and formatted order items
       for (var feedbackDoc in feedbackSnapshot.docs) {
         var feedbackData = feedbackDoc.data();
         feedbackData['customerName'] = customerName;
@@ -69,24 +61,24 @@ class RatingsAndReviewsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ratings and Reviews'),
+        title: const Text('Ratings and Reviews'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchReviews(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No reviews found'));
+            return const Center(child: Text('No reviews found'));
           }
           return ListView(
             children: snapshot.data!.map((review) {
               return ListTile(
-                title: Text('${review['customerName']}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),),
+                title: Text(review['customerName'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -104,18 +96,19 @@ class RatingsAndReviewsPage extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildStarRating(double rating) {
-    int wholePart = rating.floor(); // Get the whole part of the rating
-    bool hasHalfStar = (rating - wholePart) >= 0.5; // Check for half star
+    int wholePart = rating.floor();
+    bool hasHalfStar = (rating - wholePart) >= 0.5;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
         if (index < wholePart) {
-          return Icon(Icons.star, color: Colors.amber); // Full star for whole parts
+          return const Icon(Icons.star, color: Colors.amber);
         } else if (index == wholePart && hasHalfStar) {
-          return Icon(Icons.star_half, color: Colors.amber); // Half star
+          return const Icon(Icons.star_half, color: Colors.amber);
         } else {
-          return Icon(Icons.star_border, color: Colors.amber); // Empty star
+          return const Icon(Icons.star_border, color: Colors.amber);
         }
       }),
     );
