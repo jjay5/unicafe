@@ -60,10 +60,19 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
   }
 
   String? _validatePhone(String? value) {
-    if (value!.isEmpty) {
+    if (value == null || value.isEmpty) {
       return 'Please enter your phone number';
     }
+    if (!isValidPhone(value)) {
+      return 'Please enter a valid phone number';
+    }
     return null;
+  }
+
+  bool isValidPhone(String value) {
+    // Regex pattern for phone number with 8 to 10 digits
+    final RegExp phoneRegExp = RegExp(r'^\d{8,10}$');
+    return phoneRegExp.hasMatch(value);
   }
 
   //Email validation
@@ -178,9 +187,12 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                   decoration: InputDecoration(
                     labelText: 'Phone Number',
                     hintText: 'Enter your phone number',
+                    prefixText: '+60 ',
                     suffixIcon: _phoneController.text.isEmpty
                         ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
-                        : const Icon(Icons.check, color: Colors.green),
+                        : isValidPhone(_phoneController.text)
+                        ? const Icon(Icons.check, color: Colors.green) // Check icon if email is valid
+                        : const Icon(Icons.error, color: Colors.red),
                   ),
                   validator: _validatePhone,
                 ),

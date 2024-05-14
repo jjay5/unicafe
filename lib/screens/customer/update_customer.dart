@@ -75,7 +75,10 @@ class UpdateCustomerPageState extends State<UpdateCustomerPage> {
             ),
             TextField(
               controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number'),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                prefixText: '+60 ',
+              ),
             ),
             // Email is displayed for information only, assuming it cannot be changed here
             TextField(

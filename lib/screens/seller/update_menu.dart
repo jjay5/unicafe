@@ -265,8 +265,6 @@ class UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-
-
                   if (_selectedCategory == 'Custom' && _itemCategoryController.text.trim().isNotEmpty) {
                     await addCustomCategory(_itemCategoryController.text.trim());
                     _selectedCategory = _itemCategoryController.text.trim();
