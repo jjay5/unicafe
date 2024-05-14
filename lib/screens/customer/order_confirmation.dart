@@ -7,6 +7,8 @@ import 'package:unicafe/models/pickup_slot.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/order.dart';
 import 'package:intl/intl.dart';
+import 'package:unicafe/screens/customer/list_menu.dart';
+import 'package:unicafe/screens/customer/order_success.dart';
 
 
 class OrderConfirmationPage extends StatefulWidget {
@@ -155,10 +157,17 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         });
       }
 
-      // Show a success message or navigate to a success page
+
+      /* Show a success message or navigate to a success page
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Order placed successfully!')),
+      );*/
+
+      // Navigate to the OrderSuccessPage
+      if (!context.mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const OrderSuccessPage()),
       );
 
       // Optionally, clear the cart after order is placed
@@ -378,7 +387,12 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       children: [
                         const Text('Your Order:'),
                         InkWell(
-                          onTap: () => _showPickupTimeSelection(context),
+                          //onTap: () => MenuPage(sellerId: widget.seller.id),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MenuPage(sellerId: widget.seller.id),
+                            ),
+                          ),
                           child: const Text(
                             'ADD ITEMS',
                             style: TextStyle(
@@ -394,6 +408,30 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                   Column(
                     children: _cartItems.map((item) {
                       return ListTile(
+                        leading: item.item.itemPhoto != null && item.item.itemPhoto!.isNotEmpty
+                            ? Container(
+                          width: 100.0, // Set your desired width
+                          height: 100.0, // Set your desired height to make it square
+                          decoration: BoxDecoration(
+                            shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
+                            image: DecorationImage(
+                              fit: BoxFit.contain, // This will fill the bounds of the container without changing the aspect ratio of the image
+                              image: NetworkImage(item.item.itemPhoto!),
+                            ),
+                          ),
+                        )
+                            : Container(
+                          width: 100.0,
+                          height: 100.0,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              fit: BoxFit.contain,
+                              image: AssetImage('assets/images/default_image.png'),
+                            ),
+                          ),
+                        ),
+
                         title: Text(item.item.itemName),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

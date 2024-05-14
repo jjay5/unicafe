@@ -22,6 +22,28 @@ class MenuPage extends StatelessWidget {
     return snapshot.docs.map((doc) => MenuItem.fromFirestore(doc)).toList();
   }
 
+  Future<Map<String, List<MenuItem>>> fetchMenuItemsByCategory() async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('menuItems')
+        .where('sellerID', isEqualTo: sellerId)
+        .where('availability', isEqualTo: true)
+        .get();
+
+    Map<String, List<MenuItem>> menuItemsByCategory = {};
+
+    for (var doc in snapshot.docs) {
+      var menuItem = MenuItem.fromFirestore(doc);
+      if (menuItemsByCategory.containsKey(menuItem.itemCategory)) {
+        menuItemsByCategory[menuItem.itemCategory]!.add(menuItem);
+      } else {
+        menuItemsByCategory[menuItem.itemCategory] = [menuItem];
+      }
+    }
+
+    return menuItemsByCategory;
+  }
+
+
   Future<Seller?> fetchSellerDetails() async {
     var doc = await FirebaseFirestore.instance.collection('sellers').doc(sellerId).get();
     if (doc.exists) {
@@ -49,53 +71,113 @@ class MenuPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title:  Text(appBarTitle),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => _navigateToRatingsAndReviews(context, sellerId),
-                child: const Text('Ratings and Reviews',
-                  style: TextStyle(
-                    color: Colors.blue, // Makes it look like a hyperlink
-                    decoration: TextDecoration.underline, // Underline decoration
-                  ),
-                ),
-              ),
-            ],
           ),
 
-          body:
+          body: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+          Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextButton(
+            onPressed: () => _navigateToRatingsAndReviews(context, sellerId),
+            child: const Text(
+              'Ratings and Reviews',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue,
+                //decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ),
+                Expanded(
+                  child: FutureBuilder<Map<String, List<MenuItem>>>(
+                    future: fetchMenuItemsByCategory(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No menu items found'));
+                      }
+                      Map<String, List<MenuItem>> menuItemsByCategory = snapshot.data!;
 
-          FutureBuilder<List<MenuItem>>(
-            future: fetchMenuItems(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No menu items found'));
-              }
-              List<MenuItem> menuItems = snapshot.data!;
-              return ListView.builder(
-                itemCount: menuItems.length,
-                itemBuilder: (context, index) {
-                  MenuItem menuItem = menuItems[index];
-                  return ListTile(
-                    title: Text(menuItem.itemName),
-                    subtitle: Text(menuItem.itemCategory),
-                    trailing: const Icon(
-                      Icons.add,
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ItemDetailsPage(menuItem: menuItem),
-                        ),
+                      return ListView.builder(
+                        itemCount: menuItemsByCategory.length,
+                        itemBuilder: (context, index) {
+                          var category = menuItemsByCategory.keys.toList()[index];
+                          var menuItems = menuItemsByCategory[category]!;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  category,
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: menuItems.length,
+                                itemBuilder: (context, index) {
+                                  final menuItem = menuItems[index];
+                                  return ListTile(
+                                    leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
+                                        ? Container(
+                                      width: 50.0, // Set your desired width
+                                      height: 50.0, // Set your desired height to make it square
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
+                                        image: DecorationImage(
+                                          fit: BoxFit.cover, // This will fill the bounds of the container without changing the aspect ratio of the image
+                                          image: NetworkImage(menuItem.itemPhoto!),
+                                        ),
+                                      ),
+                                    )
+                                        : Container(
+                                      width: 50.0,
+                                      height: 50.0,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.rectangle,
+                                        image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: AssetImage('assets/images/default_image.png'),
+                                        ),
+                                      ),
+                                    ),
+
+                                    title: Text(menuItem.itemName),
+                                    subtitle: Text(menuItem.itemCategory),
+                                    trailing: const Icon(
+                                      Icons.add,
+                                    ),
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => ItemDetailsPage(menuItem: menuItem),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                separatorBuilder: (context, index) => const Divider(),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              );
-            },
-          ),
+                  ),
+                ),
+        ],
+        ),
+
+
+
+
           floatingActionButton: Consumer<CartProvider>(builder: (context, cartProvider, child) {
           // No need to fetch seller details again if you have them from the FutureBuilder above.
           final sellerDetails = sellerSnapshot.data;
@@ -118,8 +200,8 @@ class MenuPage extends StatelessWidget {
                 ),
               );
             },
-            label: Text('Review Order (${itemsFromThisSeller.length})'),
-            icon: const Icon(Icons.shopping_cart),
+                label: Text('Review Order (${itemsFromThisSeller.length})'),
+                icon: const Icon(Icons.shopping_cart),
           )
               : Container(); // In case there are no items from this seller in the cart.
         }),

@@ -98,6 +98,24 @@ class Orders {
       return orderItems;
     });
   }
+
+  //
+  Future<String> getCustomerName() async {
+    try {
+      DocumentSnapshot customerDoc = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(customerID)
+          .get();
+      if (customerDoc.exists) {
+        return customerDoc.get('name') as String; // Assuming 'name' is the key for the customer name in the document.
+      } else {
+        return 'Unknown Customer';
+      }
+    } catch (e) {
+      print('Error fetching customer name: $e');
+      return 'Failed to fetch';
+    }
+  }
 }
 
 // Model class for order items

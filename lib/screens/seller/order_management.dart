@@ -105,7 +105,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('Items',
+                  child: Text('Pick Up Time',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16, // Underlined like a hyperlink
@@ -200,9 +200,12 @@ class OrderListItem extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                   ),
                   Expanded(
                     flex: 2,
+                    child:  Text(order.pickupTime),
+                    /*
                     child: StreamBuilder<List<OrderItem>>(
                       stream: order.getOrderItems(),
                       builder: (context, snapshot) {
@@ -222,7 +225,7 @@ class OrderListItem extends StatelessWidget {
                               .toList(),
                         );
                       },
-                    ),
+                    ),*/
                   ),
                   Expanded(
                     flex: 2,

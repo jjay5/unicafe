@@ -120,9 +120,6 @@ class UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
     _itemCategoryController = TextEditingController(text: widget.menuItem.itemCategory);
     _priceController = TextEditingController(text: widget.menuItem.price.toString());
     _durationToCookController = TextEditingController(text: widget.menuItem.durationToCook);
-    //_selectedCategory =  widget.menuItem.itemCategory;
-    //_selectedCategory = _categories.contains(widget.menuItem.itemCategory) ? widget.menuItem.itemCategory : 'Null';
-
     _selectedCategory = _categories.contains(widget.menuItem.itemCategory) || predefinedCategories.contains(widget.menuItem.itemCategory)
         ? widget.menuItem.itemCategory
         : 'Custom';

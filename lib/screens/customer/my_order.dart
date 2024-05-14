@@ -14,7 +14,7 @@ class CustomerOrdersPage extends StatelessWidget {
     final customer = customerProvider.customer;
 
     if (customer == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Text("No customer signed in"),
         ),
@@ -23,7 +23,7 @@ class CustomerOrdersPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Orders'),
+        title: const Text('My Orders'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -32,13 +32,13 @@ class CustomerOrdersPage extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error.toString()}'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No orders found.'));
+            return const Center(child: Text('No orders found.'));
           }
 
           return ListView.builder(
@@ -46,37 +46,35 @@ class CustomerOrdersPage extends StatelessWidget {
             itemBuilder: (context, index) {
               DocumentSnapshot doc = snapshot.data!.docs[index];
               Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-              // Optionally, fetch customer name from Firestore if needed
+              String orderStatus = data['orderStatus'];
+
               return FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance.collection('sellers').doc(data['sellerID']).get(),
                 builder: (context, sellerSnapshot) {
                   if (sellerSnapshot.connectionState == ConnectionState.waiting) {
                     return ListTile(
                       title: Text('Order ID: ${doc.id}'),
-                      subtitle: Text('Loading customer details...'),
+                      subtitle: const Text('Loading customer details...'),
                     );
                   }
                   if (sellerSnapshot.hasError) {
                     return ListTile(
                       title: Text('Order ID: ${doc.id}'),
-                      subtitle: Text('Error loading customer details'),
+                      subtitle: const Text('Error loading customer details'),
                     );
                   }
                   if (!sellerSnapshot.hasData) {
                     return ListTile(
                       title: Text('Order ID: ${doc.id}'),
-                      subtitle: Text('Customer details not found'),
+                      subtitle: const Text('Customer details not found'),
                     );
                   }
                   Map<String, dynamic> sellerData = sellerSnapshot.data!.data() as Map<String, dynamic>;
-                  //String fetchedCustomerName = customerData['email'];
-
-                  String orderStatusMessage = _getStatusMessage(data['orderStatus']);
-                  bool isCompleted = data['orderStatus'] == 'completed'; // Check if order status is completed
+                  bool isCompleted = orderStatus == 'completed';
 
                   return Container(
-                    margin: EdgeInsets.all(8.0),
-                    padding: EdgeInsets.all(12.0),
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10.0),
@@ -84,17 +82,14 @@ class CustomerOrdersPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          orderStatusMessage,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                        ),
-                        Divider(color: Colors.grey), // This adds a horizontal line after the title
-                        SizedBox(height: 8.0), // Additional spacing after the divider if needed
+                        _buildOrderStatusIndicator(orderStatus),
+                        const Divider(color: Colors.grey),
+                        const SizedBox(height: 8.0),
                         Text('Order ID: ${doc.id}'),
                         Text(
                           'Order Date: ${DateFormat('MMMM dd, yyyy \'at\' h:mm:ss a').format(data['orderDate'].toDate())}',
                         ),
-                        SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -117,12 +112,11 @@ class CustomerOrdersPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (isCompleted) // Conditionally add the hyperlink if order status is completed
-
+                        if (isCompleted)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: GestureDetector(
-                              onTap: () {// Navigate to MenuPage with selected seller's ID
+                              onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -130,10 +124,10 @@ class CustomerOrdersPage extends StatelessWidget {
                                   ),
                                 );
                               },
-                              child: Text(
+                              child: const Text(
                                 'Rate this order',
                                 style: TextStyle(
-                                  color: Colors.blue, // Change the color to match your design
+                                  color: Colors.blue,
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
@@ -150,18 +144,56 @@ class CustomerOrdersPage extends StatelessWidget {
       ),
     );
   }
-  String _getStatusMessage(String status) {
-    switch (status) {
-      case 'pending':
-        return 'Your order is pending';
-      case 'preparing':
-        return 'Preparing your order';
-      case 'ready to pickup':
-        return 'Please pick up your order';
-      case 'completed':
-        return 'Order has been completed';
-      default:
-        return 'Status: $status'; // Default case for other statuses
-    }
+
+  Widget _buildOrderStatusIndicator(String status) {
+    List<String> statuses = ['pending', 'preparing', 'ready to pickup', 'completed'];
+    int currentIndex = statuses.indexOf(status);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: statuses.map((status) {
+        int index = statuses.indexOf(status);
+        bool isActive = index <= currentIndex;
+        bool isCurrent = index == currentIndex;
+
+        return Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Use min size to keep items aligned
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 24.0,
+                    height: 24.0,
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.green : Colors.grey,
+                      shape: BoxShape.circle,
+                    ),
+                    child: isActive
+                        ? const Icon(Icons.check, color: Colors.white, size: 16.0)
+                        : null,
+                  ),
+                  if (index < statuses.length - 1)
+                    Expanded(
+                      child: Container(
+                        height: 2.0,
+                        color: isActive ? Colors.green : Colors.grey,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8.0), // Consistent spacing for all indicators
+              Text(
+                isCurrent ? statuses[index] : "",
+                style: TextStyle(
+                  color: isCurrent ? Colors.black : Colors.transparent, // Hide text if not current
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }

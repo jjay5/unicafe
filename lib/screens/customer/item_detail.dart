@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +18,7 @@ class ItemDetailsPage extends StatefulWidget {
 class _ItemDetailsPageState extends State<ItemDetailsPage> {
   final TextEditingController _noteController = TextEditingController();
   int _quantity = 1;
+  File? _image;
 
   @override
   Widget build(BuildContext context) {
@@ -25,18 +28,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            widget.menuItem.itemPhoto != null
-                ? Image.network(
-              widget.menuItem.itemPhoto!,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                // This will only be reached if the URL is not null but the image failed to load
-                return Image.asset('assets/images/default_image.png'); // Fallback asset image if network image fails to load
-              },
-            )
-                : Image.asset('assets/images/default_image.png'), // Default image if itemPhoto is null
+            _buildImageDisplay(),
             ListTile(
               title: Text(widget.menuItem.itemName),
               subtitle: Text('RM${widget.menuItem.price.toStringAsFixed(2)}'),
@@ -85,7 +79,6 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                   if (kDebugMode) {
                     print('Item added to cart with quantity: $_quantity and note: ${_noteController.text}');
                   }
-
                   // Add item to cart using Provider
                   Provider.of<CartProvider>(context, listen: false)
                       .addToCart(widget.menuItem, _quantity, _noteController.text);
@@ -101,5 +94,28 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildImageDisplay() {
+    if (_image != null) {
+      // Display the newly picked image
+      return Image.file(
+        _image!,
+        width: 300, // Specify the desired width
+        height: 300, // Specify the desired height
+        fit: BoxFit.contain, // Adjusts the image to fit the specified dimensions
+      );
+    }
+    else if (widget.menuItem.itemPhoto != null && widget.menuItem.itemPhoto!.isNotEmpty) {
+      // Display existing network image if available
+      return Image.network(widget.menuItem.itemPhoto!,
+        width: 200, // Specify the desired width
+        height: 200, // Specify the desired height
+        fit: BoxFit.contain, // Adjusts the image to fit the specified dimensions
+      ); // Using ! to assert non-nullability
+    } else {
+      // Display a placeholder if no image is available
+      return Image.asset('assets/images/default_image.png'); // Ensure you have a placeholder asset
+    }
   }
 }
