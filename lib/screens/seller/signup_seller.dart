@@ -324,5 +324,4 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
     final format = DateFormat.jm(); // Use 'hh:mm a' for hour:minute AM/PM format
     return format.format(dt);
   }
-
 }

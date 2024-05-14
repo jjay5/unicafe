@@ -98,7 +98,10 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
             ),
             TextField(
               controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number'),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                prefixText: '+60 ',
+              ),
             ),
             TextField(
               controller: _emailController,
@@ -133,7 +136,7 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
                   stallName: _stallNameController.text.trim(),
                   stallLocation: _stallLocationController.text.trim(),
                   phone: _phoneController.text.trim(),
-                  email: _emailController.text, // Assuming unchanged
+                  email: _emailController.text, // unchanged
                 );
 
                 // Update Firestore with the new data
