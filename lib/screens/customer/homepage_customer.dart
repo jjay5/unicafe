@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unicafe/screens/customer/list_stall.dart';
 import 'package:unicafe/screens/customer/update_customer.dart';
-import 'package:unicafe/screens/customer/cart_item.dart';
 import 'package:unicafe/screens/customer/my_order.dart';
 
 class CustomerHomePage extends StatelessWidget {
@@ -35,17 +34,16 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
 
-    List<Widget> _pageOptions = <Widget>[
+    List<Widget> pageOptions = <Widget>[
       const ListStallPage(), // Home widget
-      //const Text("Order"), //Order widget
-      CustomerOrdersPage(),
+      const CustomerOrdersPage(),
       const UpdateCustomerPage(), // Account Page widget
     ];
 
     return Scaffold(
       body: IndexedStack( // Use IndexedStack to maintain state of each page
         index: _selectedIndex,
-        children: _pageOptions,
+        children: pageOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

@@ -9,10 +9,10 @@ class ModifyPickupSlotPage extends StatefulWidget {
   const ModifyPickupSlotPage({super.key, required this.seller});
 
   @override
-  _ModifyPickupSlotPageState createState() => _ModifyPickupSlotPageState();
+  ModifyPickupSlotPageState createState() => ModifyPickupSlotPageState();
 }
 
-class _ModifyPickupSlotPageState extends State<ModifyPickupSlotPage> {
+class ModifyPickupSlotPageState extends State<ModifyPickupSlotPage> {
   final _daysOfWeek = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
   ];
@@ -99,8 +99,6 @@ class _ModifyPickupSlotPageState extends State<ModifyPickupSlotPage> {
           .collection('pickupSlots')
           .doc(dayOfWeek)
           .set(slotMap, SetOptions(merge: true));
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pickup time updated successfully!')));
 
       setState(() {}); // Rebuild the widget to reflect the update
     }
