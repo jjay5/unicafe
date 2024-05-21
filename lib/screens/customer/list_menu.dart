@@ -8,24 +8,33 @@ import 'package:unicafe/models/cart.dart';
 import 'package:unicafe/screens/customer/ratings_reviews.dart';
 import 'package:unicafe/screens/customer/order_confirmation.dart';
 
-class MenuPage extends StatelessWidget {
+class MenuPage extends StatefulWidget {
   final String sellerId;
 
   const MenuPage({super.key, required this.sellerId});
 
-  Future<List<MenuItem>> fetchMenuItems() async {
-    var snapshot = await FirebaseFirestore.instance
-        .collection('menuItems')
-        .where('sellerID', isEqualTo: sellerId)
-        .where('availability', isEqualTo: true)
-        .get();
-    return snapshot.docs.map((doc) => MenuItem.fromFirestore(doc)).toList();
+  @override
+  MenuPageState createState() => MenuPageState();
+}
+
+class MenuPageState extends State<MenuPage> {
+  late Future<Map<String, List<MenuItem>>> _menuItemsFuture;
+  late Future<Seller?> _sellerFuture;
+  String _searchQuery = '';
+  bool _showSearchBar = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _menuItemsFuture = fetchMenuItemsByCategory();
+    _sellerFuture = fetchSellerDetails();
   }
 
   Future<Map<String, List<MenuItem>>> fetchMenuItemsByCategory() async {
     var snapshot = await FirebaseFirestore.instance
         .collection('menuItems')
-        .where('sellerID', isEqualTo: sellerId)
+        .where('sellerID', isEqualTo: widget.sellerId)
         .where('availability', isEqualTo: true)
         .get();
 
@@ -43,9 +52,8 @@ class MenuPage extends StatelessWidget {
     return menuItemsByCategory;
   }
 
-
   Future<Seller?> fetchSellerDetails() async {
-    var doc = await FirebaseFirestore.instance.collection('sellers').doc(sellerId).get();
+    var doc = await FirebaseFirestore.instance.collection('sellers').doc(widget.sellerId).get();
     if (doc.exists) {
       return Seller.fromFirestore(doc);
     }
@@ -55,7 +63,7 @@ class MenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Seller?>(
-      future: fetchSellerDetails(),
+      future: _sellerFuture,
       builder: (context, sellerSnapshot) {
         if (sellerSnapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
@@ -70,144 +78,194 @@ class MenuPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title:  Text(appBarTitle),
-          ),
-
-          body: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-          Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextButton(
-            onPressed: () => _navigateToRatingsAndReviews(context, sellerId),
-            child: const Text(
-              'Ratings and Reviews',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.blue,
-                //decoration: TextDecoration.underline,
+            title: Text(appBarTitle),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  setState(() {
+                    _showSearchBar = !_showSearchBar;
+                  });
+                },
               ),
-            ),
+            ],
+            bottom: _showSearchBar
+            ? PreferredSize(
+              preferredSize: const Size.fromHeight(56.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search menu items ...',
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.white,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            )
+                : null,
           ),
-        ),
-                Expanded(
-                  child: FutureBuilder<Map<String, List<MenuItem>>>(
-                    future: fetchMenuItemsByCategory(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No menu items found'));
-                      }
-                      Map<String, List<MenuItem>> menuItemsByCategory = snapshot.data!;
-
-                      return ListView.builder(
-                        itemCount: menuItemsByCategory.length,
-                        itemBuilder: (context, index) {
-                          var category = menuItemsByCategory.keys.toList()[index];
-                          var menuItems = menuItemsByCategory[category]!;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  category,
-                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: menuItems.length,
-                                itemBuilder: (context, index) {
-                                  final menuItem = menuItems[index];
-                                  return ListTile(
-                                    leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
-                                        ? Container(
-                                      width: 50.0, // Set your desired width
-                                      height: 50.0, // Set your desired height to make it square
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
-                                        image: DecorationImage(
-                                          fit: BoxFit.cover, // This will fill the bounds of the container without changing the aspect ratio of the image
-                                          image: NetworkImage(menuItem.itemPhoto!),
-                                        ),
-                                      ),
-                                    )
-                                        : Container(
-                                      width: 50.0,
-                                      height: 50.0,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.rectangle,
-                                        image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: AssetImage('assets/images/default_image.png'),
-                                        ),
-                                      ),
-                                    ),
-
-                                    title: Text(menuItem.itemName),
-                                    subtitle: Text(menuItem.itemCategory),
-                                    trailing: const Icon(
-                                      Icons.add,
-                                    ),
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => ItemDetailsPage(menuItem: menuItem),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                separatorBuilder: (context, index) => const Divider(),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextButton(
+                  onPressed: () => _navigateToRatingsAndReviews(context, widget.sellerId),
+                  child: const Text(
+                    'Ratings and Reviews',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
-        ],
-        ),
+              ),
+              Expanded(
+                child: FutureBuilder<Map<String, List<MenuItem>>>(
+                  future: _menuItemsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No menu items found'));
+                    }
+                    Map<String, List<MenuItem>> menuItemsByCategory = snapshot.data!;
+                    Map<String, List<MenuItem>> filteredItemsByCategory = _filterMenuItems(menuItemsByCategory, _searchQuery);
 
+                    return ListView.builder(
+                      itemCount: filteredItemsByCategory.length,
+                      itemBuilder: (context, index) {
+                        var category = filteredItemsByCategory.keys.toList()[index];
+                        var menuItems = filteredItemsByCategory[category]!;
 
-
-
-          floatingActionButton: Consumer<CartProvider>(builder: (context, cartProvider, child) {
-          // No need to fetch seller details again if you have them from the FutureBuilder above.
-          final sellerDetails = sellerSnapshot.data;
-          if (sellerDetails == null) {
-            return Container(); // Or some other widget in case the seller details are not available.
-          }
-          final itemsFromThisSeller = cartProvider.items.where((item) => item.item.sellerID == sellerDetails.id).toList();
-
-          return itemsFromThisSeller.isNotEmpty
-              ? FloatingActionButton.extended(
-            onPressed: () {
-              // Navigate directly to OrderConfirmationPage
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OrderConfirmationPage(
-                    seller: sellerDetails,
-                    cartItems: itemsFromThisSeller,
-                  ),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                category,
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: menuItems.length,
+                              itemBuilder: (context, index) {
+                                final menuItem = menuItems[index];
+                                return ListTile(
+                                  leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
+                                      ? Container(
+                                    width: 50.0,
+                                    height: 50.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.rectangle,
+                                      image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: NetworkImage(menuItem.itemPhoto!),
+                                      ),
+                                    ),
+                                  )
+                                      : Container(
+                                    width: 50.0,
+                                    height: 50.0,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.rectangle,
+                                      image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage('assets/images/default_image.png'),
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(menuItem.itemName),
+                                  subtitle: Text('RM${menuItem.price.toStringAsFixed(2)}'),
+                                  trailing: const Icon(Icons.add),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ItemDetailsPage(menuItem: menuItem),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              separatorBuilder: (context, index) => const Divider(),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
-              );
+              ),
+            ],
+          ),
+          floatingActionButton: Consumer<CartProvider>(
+            builder: (context, cartProvider, child) {
+              final sellerDetails = sellerSnapshot.data;
+              if (sellerDetails == null) {
+                return Container();
+              }
+              final itemsFromThisSeller = cartProvider.items.where((item) => item.item.sellerID == sellerDetails.id).toList();
+
+              return itemsFromThisSeller.isNotEmpty
+                  ? FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderConfirmationPage(
+                        seller: sellerDetails,
+                        cartItems: itemsFromThisSeller,
+                      ),
+                    ),
+                  );
+                },
+                    label: Text('Review Order (${itemsFromThisSeller.length})'),
+                    icon: const Icon(Icons.shopping_cart),
+              )
+                  : Container();
             },
-                label: Text('Review Order (${itemsFromThisSeller.length})'),
-                icon: const Icon(Icons.shopping_cart),
-          )
-              : Container(); // In case there are no items from this seller in the cart.
-        }),
+          ),
         );
       },
     );
+  }
+
+  Map<String, List<MenuItem>> _filterMenuItems(Map<String, List<MenuItem>> menuItemsByCategory, String query) {
+    if (query.isEmpty) {
+      return menuItemsByCategory;
+    }
+
+    Map<String, List<MenuItem>> filteredItemsByCategory = {};
+    menuItemsByCategory.forEach((category, items) {
+      List<MenuItem> filteredItems = items.where((item) => item.itemName.toLowerCase().contains(query.toLowerCase())).toList();
+      if (filteredItems.isNotEmpty) {
+        filteredItemsByCategory[category] = filteredItems;
+      }
+    });
+
+    return filteredItemsByCategory;
   }
 
   void _navigateToRatingsAndReviews(BuildContext context, String sellerId) {

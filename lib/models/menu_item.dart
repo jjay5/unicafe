@@ -115,7 +115,6 @@ class MenuProvider extends ChangeNotifier {
         .toList();
     notifyListeners();
   }
-
 }
 
 
