@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unicafe/models/seller.dart';
 import 'package:unicafe/models/pickup_slot.dart';
+import 'package:unicafe/screens/login.dart';
 
 class SignUpSellerPage extends StatefulWidget {
   const SignUpSellerPage({super.key});
@@ -14,7 +15,6 @@ class SignUpSellerPage extends StatefulWidget {
 
 class SignUpSellerPageState extends State<SignUpSellerPage> {
   final TextEditingController _stallNameController = TextEditingController();
-  final TextEditingController _stallLocationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -22,6 +22,11 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  //final _formKey = GlobalKey<FormState>();
+  final List<String> _stallLocations = ['Student Pavillion', 'Bunga Raya Cafe', 'Alamanda Cafe', 'Cempaka Cafe', 'TAZ Cafe',
+    'Seroja Cafe', 'Kenanga Cafe', 'Dahlia Cafe', 'Rafflesia Cafe', 'Lakeview Cafe'];
+  String? _selectedLocation;
 
   @override
   void initState() {
@@ -184,9 +189,30 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
                 ),
                 validator: _validateName,
               ),
+              /*
               TextField(
                 controller: _stallLocationController,
                 decoration: const InputDecoration(labelText: 'Stall Location'),
+              ),*/
+              DropdownButtonFormField<String>(
+                decoration:  const InputDecoration(
+                  //labelText: 'Stall Location',
+                  //border: OutlineInputBorder(),
+                ),
+                value: _selectedLocation,
+                hint: const Text('Stall Location'),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedLocation = newValue;
+                  });
+                },
+                items: _stallLocations.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                validator: (value) => value == null ? 'Please select a location' : null,
               ),
               TextFormField(
                 controller: _phoneController,
@@ -265,27 +291,45 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
               ElevatedButton(
                 child: const Text('Sign Up'),
                 onPressed: () async {
-                  UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                    email: _emailController.text.trim(),
-                    password: _passwordController.text.trim(),
-                  );
 
-                  // Create a Customer instance
-                  Seller newSeller = Seller(
-                    id: userCredential.user!.uid, // Firestore generates the UID
-                    stallName: _stallNameController.text.trim(),
-                    stallLocation: _stallLocationController.text.trim(),
-                    phone: _phoneController.text.trim(),
-                    email: _emailController.text.trim(),
-                  );
+                    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                    );
 
-                  // Add the Seller details in Firestore
-                  await _firestore.collection('sellers').doc(userCredential.user!.uid).set(newSeller.toMap());
+                    // Create a Customer instance
+                    Seller newSeller = Seller(
+                      id: userCredential.user!.uid, // Firestore generates the UID
+                      stallName: _stallNameController.text.trim(),
+                      //stallLocation: _stallLocationController.text.trim(),
+                      stallLocation: _selectedLocation ?? '',
+                      phone: _phoneController.text.trim(),
+                      email: _emailController.text.trim(),
+                    );
 
-                  // Call the function to create a default pickup schedule
-                  if (!context.mounted) return;
-                  await createDefaultPickupSchedule(userCredential.user!.uid, context);
-                },
+                    // Add the Seller details in Firestore
+                    await _firestore.collection('sellers').doc(userCredential.user!.uid).set(newSeller.toMap());
+
+
+
+                    // Notify user and navigate to login page
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Signup successful, please log in.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    // After successful signup
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+
+                    // Call the function to create a default pickup schedule
+
+                    await createDefaultPickupSchedule(userCredential.user!.uid, context);
+                  }
               ),
             ],
           ),

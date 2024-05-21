@@ -14,13 +14,16 @@ class UpdateSellerPage extends StatefulWidget {
 
 class UpdateSellerPageState extends State<UpdateSellerPage> {
   final TextEditingController _stallNameController = TextEditingController();
-  final TextEditingController _stallLocationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _isLoading = false;
+
+  final List<String> _stallLocations = ['Student Pavillion', 'Bunga Raya Cafe', 'Alamanda Cafe', 'Cempaka Cafe', 'TAZ Cafe',
+    'Seroja Cafe', 'Kenanga Cafe', 'Dahlia Cafe', 'Rafflesia Cafe', 'Lakeview Cafe'];
+  String? _selectedLocation;
 
   @override
   void initState() {
@@ -49,7 +52,8 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
       if (sellerSnapshot.exists) {
         Seller currentSeller = Seller.fromFirestore(sellerSnapshot);
         _stallNameController.text = currentSeller.stallName;
-        _stallLocationController.text = currentSeller.stallLocation;
+        //_stallLocationController.text = currentSeller.stallLocation;
+        _selectedLocation = currentSeller.stallLocation;
         _phoneController.text = currentSeller.phone;
         _emailController.text = currentSeller.email;
         if (!mounted) return;
@@ -92,9 +96,32 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
               controller: _stallNameController,
               decoration: const InputDecoration(labelText: 'Stall Name'),
             ),
+            /*
             TextField(
               controller: _stallLocationController,
               decoration: const InputDecoration(labelText: 'Stall Location'),
+            ),*/
+            Column(
+              children: <Widget>[
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    hintText: 'Stall Location',
+                  ),
+                  value: _selectedLocation,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedLocation = newValue;
+                    });
+                  },
+                  items: _stallLocations.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) => value == null ? 'Please select a location' : null,
+                ),
+              ],
             ),
             TextField(
               controller: _phoneController,
@@ -134,7 +161,9 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
                 Seller updatedSeller = Seller(
                   id: _auth.currentUser!.uid,
                   stallName: _stallNameController.text.trim(),
-                  stallLocation: _stallLocationController.text.trim(),
+
+                  //stallLocation: _stallLocationController.text.trim(),
+                  stallLocation: _selectedLocation ?? '',
                   phone: _phoneController.text.trim(),
                   email: _emailController.text, // unchanged
                 );
