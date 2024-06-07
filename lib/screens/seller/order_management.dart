@@ -5,14 +5,21 @@ import 'package:unicafe/screens/seller/order_details_seller.dart';
 
 class OrderManagementPage extends StatefulWidget {
   final String sellerID;
+  final int initialTabIndex;
 
-  const OrderManagementPage({super.key, required this.sellerID});
+  const OrderManagementPage({
+    super.key,
+    required this.sellerID,
+    this.initialTabIndex = 0  // Default to the first tab if not specified
+  });
 
   @override
   OrderManagementPageState createState() => OrderManagementPageState();
 }
 
 class OrderManagementPageState extends State<OrderManagementPage> {
+  late int _selectedTabIndex;
+
   late Stream<List<Orders>> _pendingOrdersStream;
   late Stream<List<Orders>> _preparingOrdersStream;
   late Stream<List<Orders>> _readyToPickupOrdersStream;
@@ -21,6 +28,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
   @override
   void initState() {
     super.initState();
+    _selectedTabIndex = widget.initialTabIndex;
     _pendingOrdersStream = _getOrdersStream('pending');
     _preparingOrdersStream = _getOrdersStream('preparing');
     _readyToPickupOrdersStream = _getOrdersStream('ready to pickup');
@@ -34,7 +42,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
         .where('orderStatus', isEqualTo: status)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => Orders.fromFirestore(doc)).toList());
-  }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +52,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
       ),
       body: DefaultTabController(
         length: 4,
+        initialIndex: _selectedTabIndex,
         child: Column(
           children: [
             const TabBar(
@@ -129,10 +138,10 @@ class OrderManagementPageState extends State<OrderManagementPage> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildOrdersList(_pendingOrdersStream),
-                  _buildOrdersList(_preparingOrdersStream),
-                  _buildOrdersList(_readyToPickupOrdersStream),
-                  _buildOrdersList(_completedOrdersStream),
+                  _buildOrdersList(_pendingOrdersStream, 'No pending orders'),
+                  _buildOrdersList(_preparingOrdersStream, 'No orders are being prepared'),
+                  _buildOrdersList(_readyToPickupOrdersStream, 'No orders are ready for pickup'),
+                  _buildOrdersList(_completedOrdersStream, 'No completed orders'),
                 ],
               ),
             ),
@@ -142,7 +151,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
     );
   }
 
-  Widget _buildOrdersList(Stream<List<Orders>> stream) {
+  Widget _buildOrdersList(Stream<List<Orders>> stream, String statusMessage) {
     return StreamBuilder<List<Orders>>(
       stream: stream,
       builder: (context, snapshot) {
@@ -153,6 +162,17 @@ class OrderManagementPageState extends State<OrderManagementPage> {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         final orders = snapshot.data ?? [];
+        if (orders.isEmpty) {
+          return Center(
+            child: Text(
+              statusMessage,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          );
+        }
         return ListView.builder(
           itemCount: orders.length,
           itemBuilder: (context, index) {
@@ -264,6 +284,3 @@ class OrderListItem extends StatelessWidget {
     );
   }
 }
-
-
-

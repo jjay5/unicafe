@@ -58,7 +58,7 @@ class Dashboard extends StatelessWidget {
              _buildCard(
                 title: 'Orders To Prepare',
                 content: _buildOrderInfoTile(context, orderService, seller.id, 'pending'),
-                onTap: () => onSelectPage(2),  // Navigate using the parent's function
+                onTap: () => onSelectPage(2),
               ),
               const SizedBox(height: 20),
               _buildCard(

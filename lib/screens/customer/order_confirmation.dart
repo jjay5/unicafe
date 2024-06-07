@@ -59,11 +59,11 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   }
 
   void _generateTimeSlots(PickupSlot slot) {
-    var format = DateFormat.jm(); // For easier reuse
+    var format = DateFormat.jm();
     var startTime = format.parse(slot.startTime);
     var endTime = format.parse(slot.endTime);
 
-    _timeSlots.clear(); // Clear previous slots, if any
+    _timeSlots.clear();
 
     while (startTime.add(const Duration(hours: 1)).isBefore(endTime)) {
       var nextTime = startTime.add(const Duration(hours: 1));
@@ -94,6 +94,23 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     });
     // Update the cart provider to remove the item
     Provider.of<CartProvider>(context, listen: false).removeCartItem(index);
+  }
+
+  void _updateItemQuantity(CartItem cartItem, int newQuantity) {
+    setState(() {
+      final index = _cartItems.indexOf(cartItem);
+      if (index != -1) {
+        final updatedItem = CartItem(
+          item: cartItem.item,
+          quantity: newQuantity,
+          note: cartItem.note,
+          totalItemPrice: newQuantity * cartItem.item.price,
+        );
+        _cartItems[index] = updatedItem;
+      }
+    });
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.updateCartItemQuantity(cartItem.item, cartItem.note, newQuantity);
   }
 
   String generateOrderID(int orderCounter) {
@@ -157,21 +174,13 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         });
       }
 
-
-      /* Show a success message or navigate to a success page
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed successfully!')),
-      );*/
-
       // Navigate to the OrderSuccessPage
       if (!context.mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const OrderSuccessPage()),
       );
 
-      // Optionally, clear the cart after order is placed
-      //Provider.of<CartProvider>(context, listen: false).clearCart();
+      Provider.of<CartProvider>(context, listen: false).clearCart();
     } catch (e) {
       // Handle errors (e.g., show an error message)
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +192,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   void _showPickupTimeSelection(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Makes the background transparent
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
@@ -235,11 +244,19 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_cartItems.isEmpty) {
+      // If the cart is empty, navigate back to the previous page
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.pop(context);
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Confirm Your Order'),
       ),
-      body: Column(
+      body: _cartItems.isEmpty
+        ? Center(child: CircularProgressIndicator())
+        : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
@@ -270,7 +287,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ],
                     ),
                   ),
-                  // Option form section
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
@@ -352,12 +369,12 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                               TextFormField(
                                 decoration: const InputDecoration(
                                   labelText: 'Card Number',
-                                  border: OutlineInputBorder(), // Adds a border around the input field
-                                  contentPadding: EdgeInsets.all(10), // Adds padding inside the input field
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
-                              const SizedBox(height: 8), // Adds space between input fields
+                              const SizedBox(height: 8),
                               TextFormField(
                                 decoration: const InputDecoration(
                                   labelText: 'Expiration Date (MM/YY)',
@@ -387,7 +404,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       children: [
                         const Text('Your Order:'),
                         InkWell(
-                          //onTap: () => MenuPage(sellerId: widget.seller.id),
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => MenuPage(sellerId: widget.seller.id),
@@ -404,42 +420,61 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ],
                     ),
                   ),
-                  // Alternative to ListView.builder
                   Column(
                     children: _cartItems.map((item) {
                       return ListTile(
                         leading: item.item.itemPhoto != null && item.item.itemPhoto!.isNotEmpty
-                            ? Container(
-                          width: 100.0, // Set your desired width
-                          height: 100.0, // Set your desired height to make it square
+                          ? Container(
+                          width: 100.0,
+                          height: 100.0,
                           decoration: BoxDecoration(
-                            shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
+                            shape: BoxShape.rectangle,
                             image: DecorationImage(
-                              fit: BoxFit.contain, // This will fill the bounds of the container without changing the aspect ratio of the image
+                              fit: BoxFit.contain,
                               image: NetworkImage(item.item.itemPhoto!),
                             ),
                           ),
                         )
-                            : Container(
-                          width: 100.0,
-                          height: 100.0,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            image: DecorationImage(
-                              fit: BoxFit.contain,
-                              image: AssetImage('assets/images/default_image.png'),
+                          : Container(
+                            width: 100.0,
+                            height: 100.0,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                fit: BoxFit.contain,
+                                image: AssetImage('assets/images/default_image.png'),
                             ),
                           ),
                         ),
-
                         title: Text(item.item.itemName),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            //('RM ${(item.quantity * item.item.price).toDouble().toStringAsFixed(2)}'),
                             Text('RM ${item.totalItemPrice.toDouble().toStringAsFixed(2)}'),
-                            Text('Quantity: ${item.quantity}'),
+                            //Text('Quantity: ${item.quantity}'),
                             Text('Notes: ${item.note}'),
+                            Text('Quantity:'),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: () {
+                                    if (item.quantity > 1) {
+                                      _updateItemQuantity(item, item.quantity - 1);
+                                    } else {
+                                      _removeItem(_cartItems.indexOf(item));
+                                    }
+                                  },
+                                ),
+                                Text('${item.quantity}'),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () {
+                                    _updateItemQuantity(item, item.quantity + 1);
+                                  },
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                         trailing: IconButton(
@@ -458,7 +493,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         ],
       ),
       bottomNavigationBar: Container(
-        color: Colors.grey, // Set the desired color for the bottom navigation bar
+        color: Colors.grey,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(

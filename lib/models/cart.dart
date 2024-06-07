@@ -58,12 +58,32 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCartItemQuantity(MenuItem item, String note, int newQuantity) {
+    int index = _items.indexWhere((cartItem) =>
+    cartItem.item.id == item.id && cartItem.note == note);
+
+    if (index != -1) {
+      var existingItem = _items[index];
+      var updatedTotalPrice = newQuantity * item.price;
+
+      _items[index] = CartItem(
+        item: existingItem.item,
+        quantity: newQuantity,
+        note: existingItem.note,
+        totalItemPrice: updatedTotalPrice,
+      );
+
+      notifyListeners();
+    }
+  }
+
   void removeCartItem(int index) {
     _items.removeAt(index);
     notifyListeners();
   }
+
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
+  }
 }
-
-
-
-

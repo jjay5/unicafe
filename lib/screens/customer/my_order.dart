@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/customer.dart';
 import 'package:unicafe/screens/customer/add_feedback.dart';
+import 'package:unicafe/screens/customer/view_feedback.dart';
 
 class CustomerOrdersPage extends StatelessWidget {
   const CustomerOrdersPage({super.key});
@@ -113,6 +114,41 @@ class CustomerOrdersPage extends StatelessWidget {
                           ],
                         ),
                         if (isCompleted)
+                          if (isCompleted)
+                            FutureBuilder<bool>(
+                              future: hasReviewedOrder(doc.id),
+                              builder: (context, reviewSnapshot) {
+                                if (reviewSnapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (reviewSnapshot.hasError) {
+                                  return const Text('Error loading review status');
+                                }
+                                bool hasReviewed = reviewSnapshot.data ?? false;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => hasReviewed
+                                              ? ViewFeedbackPage(orderId: doc.id)
+                                              : FeedbackPage(orderId: doc.id)
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      hasReviewed ? 'My Reviews' : 'Rate this order',
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),                          /*
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: GestureDetector(
@@ -132,7 +168,7 @@ class CustomerOrdersPage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ),
+                          ),*/
                       ],
                     ),
                   );
@@ -143,6 +179,16 @@ class CustomerOrdersPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<bool> hasReviewedOrder(String orderId) async {
+    final reviewSnapshot = await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(orderId)
+        .collection('feedback')
+        .get();
+
+    return reviewSnapshot.docs.isNotEmpty;
   }
 
   Widget _buildOrderStatusIndicator(String status) {
@@ -158,7 +204,7 @@ class CustomerOrdersPage extends StatelessWidget {
 
         return Expanded(
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Use min size to keep items aligned
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
@@ -182,7 +228,7 @@ class CustomerOrdersPage extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 8.0), // Consistent spacing for all indicators
+              const SizedBox(height: 8.0),
               Text(
                 isCurrent ? statuses[index] : "",
                 style: TextStyle(
