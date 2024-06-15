@@ -23,7 +23,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => MenuProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         Provider(create: (_) => OrderService()),
-
       ],
       child: const MyApp(),
     ),
@@ -36,6 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // Disable the debug banner
       title: 'UNICAFE',
       theme: ThemeData(
         primarySwatch: Colors.blue,
