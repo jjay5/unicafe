@@ -20,6 +20,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscureText = true;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -34,8 +35,8 @@ class LoginPageState extends State<LoginPage> {
             const Text(
               'UNICAFE',
               style: TextStyle(
-                fontSize: 28, // Adjust the font size as needed
-                fontWeight: FontWeight.bold, // Make the text bold
+                fontSize: 50, // Adjust the font size as needed
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 30.0),
@@ -46,8 +47,20 @@ class LoginPageState extends State<LoginPage> {
             const SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: _obscureText,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                ),
+              ),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
@@ -77,7 +90,22 @@ class LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ],
-            )
+            ),
+            const SizedBox(height: 20),
+            InkWell(
+              onTap: () {
+                _showForgotPasswordDialog();
+              },
+              child: const Text(
+                'Forgot Password?',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  //decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -138,6 +166,53 @@ class LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Failed to login. Please check your credentials.'),
       ));
+    }
+  }
+  void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final TextEditingController forgotPasswordController = TextEditingController();
+
+        return AlertDialog(
+          title: const Text('Forgot Password'),
+          content: TextField(
+            controller: forgotPasswordController,
+            decoration: const InputDecoration(labelText: 'Enter your email'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _resetPassword(forgotPasswordController.text.trim());
+                Navigator.of(context).pop();
+              },
+              child: const Text('Reset Password'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset email sent')),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Password Reset Error: $e');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Could not send password reset email')),
+      );
     }
   }
 }

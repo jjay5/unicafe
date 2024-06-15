@@ -92,6 +92,9 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
     return null;
   }
 
+  bool _obscurePassword = true;
+  bool _obscureReEnterPassword = true;
+
   //Password validation
   bool _isAtLeast6Characters = false;
   bool _hasUpperCase = false;
@@ -214,28 +217,51 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                   children: <Widget>[
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       onChanged: (value) {
-                        setState(() {
-                          _validatePassword(value); // This will now also trigger UI updates
-                        });
+                        _validatePassword(value);
                       },
                       decoration: InputDecoration(
                         labelText: 'Password',
                         hintText: 'Enter your password',
-                        suffixIcon: _passwordController.text.isNotEmpty &&
-                            _isAtLeast6Characters &&
-                            _hasUpperCase &&
-                            _hasLowerCase &&
-                            _hasNumber &&
-                            _hasSymbol
-                            ? const Icon(Icons.check, color: Colors.green) // Check icon if all requirements met
-                            : _passwordController.text.isEmpty
-                            ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
-                            : const Icon(Icons.error, color: Colors.red), // if requirements not met
-
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_passwordController.text.isNotEmpty &&
+                                _isAtLeast6Characters &&
+                                _hasUpperCase &&
+                                _hasLowerCase &&
+                                _hasNumber &&
+                                _hasSymbol)
+                              const Icon(Icons.check, color: Colors.green)
+                            else if (_passwordController.text.isNotEmpty)
+                              const Icon(Icons.error, color: Colors.red),
+                            IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      validator: (value) => _validatePass(value).isNotEmpty ? 'See requirements below' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'See requirements below';
+                        }
+                        if (!_isAtLeast6Characters ||
+                            !_hasUpperCase ||
+                            !_hasLowerCase ||
+                            !_hasNumber ||
+                            !_hasSymbol) {
+                          return 'See requirements below';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 10),
                     buildPasswordRequirements(), // Display all password requirement dynamically
@@ -243,15 +269,30 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                 ),
                 TextFormField(
                   controller: _reEnterPasswordController,
-                  obscureText: true,
+                  obscureText: _obscureReEnterPassword,
                   decoration: InputDecoration(
                     labelText: 'Re-enter Password',
                     hintText: 'Re-enter password',
-                    suffixIcon: _reEnterPasswordController.text.isEmpty
-                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
-                        : _reEnterPasswordController.text == _passwordController.text
-                          ? const Icon(Icons.check, color: Colors.green) // Check icon if passwords match
-                          : const Icon(Icons.error, color: Colors.red),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_reEnterPasswordController.text.isNotEmpty &&
+                            _reEnterPasswordController.text == _passwordController.text)
+                          const Icon(Icons.check, color: Colors.green)
+                        else if (_reEnterPasswordController.text.isNotEmpty)
+                          const Icon(Icons.error, color: Colors.red),
+                        IconButton(
+                          icon: Icon(
+                            _obscureReEnterPassword ? Icons.visibility : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureReEnterPassword = !_obscureReEnterPassword;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   validator: _validatePasswordConfirmation,
                 ),
@@ -288,11 +329,17 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                       );
 
                     } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('FAILEDDDDDDDD'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
                           title: const Text('Error'),
-                          content: Text(e.toString()),
+                          content: Text('Please fill all the requiredment'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
