@@ -116,6 +116,50 @@ class Orders {
       return 'Failed to fetch';
     }
   }
+
+  Future<Map<String, String>> getSellerInfo() async {
+    try {
+      DocumentSnapshot sellerDoc = await FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(sellerID)
+          .get();
+      if (sellerDoc.exists) {
+        String stallName = sellerDoc.get('stallName') as String;
+        String stallLocation = sellerDoc.get('stallLocation') as String;
+
+        return {
+          'stallName': stallName,
+          'stallLocation': stallLocation,
+        };
+      } else {
+        return {
+          'stallName': 'Unknown Seller',
+          'stallLocation': 'Unknown Location',
+        };
+      }
+    } catch (e) {
+      print('Error fetching seller info: $e');
+      return {
+        'stallName': 'Failed to fetch',
+        'stallLocation': 'Failed to fetch',
+      };
+    }
+  }
+
+  static Orders fromSnapshot(DocumentSnapshot<Object?> doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Orders(
+      id: doc.id,
+      orderDate: (data['orderDate'] as Timestamp).toDate(),
+      totalAmount: data['totalAmount'],
+      orderStatus: data['orderStatus'],
+      paymentMethod: data['paymentMethod'],
+      pickupMethod: data['pickupMethod'],
+      pickupTime: data['pickupTime'],
+      customerID: data['customerID'],
+      sellerID: data['sellerID'],
+    );
+  }
 }
 
 // Model class for order items

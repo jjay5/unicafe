@@ -106,7 +106,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                   child: Text('Order ID',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16, // Underlined like a hyperlink
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -246,7 +246,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   Widget build(BuildContext context) {
     if (_cartItems.isEmpty) {
       // If the cart is empty, navigate back to the previous page
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pop(context);
       });
     }
@@ -255,7 +255,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         title: const Text('Confirm Your Order'),
       ),
       body: _cartItems.isEmpty
-        ? Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
         : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -287,7 +287,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ],
                     ),
                   ),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
@@ -453,7 +452,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                             Text('RM ${item.totalItemPrice.toDouble().toStringAsFixed(2)}'),
                             //Text('Quantity: ${item.quantity}'),
                             Text('Notes: ${item.note}'),
-                            Text('Quantity:'),
+                            const Text('Quantity:'),
                             Row(
                               children: [
                                 IconButton(
@@ -501,11 +500,23 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
             children: <Widget>[
               Text(
                 'Total: RM${_calculateTotal().toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 20, color: Colors.white), // Adjust text color as needed
+                style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold), // Adjust text color as needed
               ),
               ElevatedButton(
-                onPressed: () => _confirmOrder(context),
+
                 child: const Text('Place Order'),
+                onPressed: () async {
+                  try{
+                    _confirmOrder(context);
+                  } catch (e){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('FAILEDDDDDDDD'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
               ),
             ],
           ),
