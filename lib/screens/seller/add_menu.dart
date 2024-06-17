@@ -35,6 +35,7 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
   void initState() {
     super.initState();
     loadCategories();
+    _itemNameController.addListener(_updateValidation);
   }
 
   void loadCategories() async {
@@ -51,6 +52,48 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _itemNameController.removeListener(_updateValidation);
+    _priceController.removeListener(_updateValidation);
+    _durationToCookController.removeListener(_updateValidation);
+    //_passwordController.removeListener(_updateValidation);
+    //_reEnterPasswordController.removeListener(_updateValidation);
+
+    _itemNameController.dispose();
+    _priceController.dispose();
+    _durationToCookController.dispose();
+    //_passwordController.dispose();
+    //_reEnterPasswordController.dispose();
+
+    super.dispose();
+  }
+
+  void _updateValidation() {
+    setState(() {}); // Update UI when fill the form
+  }
+
+  String? _validateItemName(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter the item name';
+    }
+    return null;
+  }
+
+  String? _validatePrice(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter the item price';
+    }
+    return null;
+  }
+
+  String? _validateDuration(String? value) {
+    if (value!.isEmpty) {
+      return 'Please enter the duration time to cook the item';
+    }
+    return null;
   }
 
   Future<void> addCustomCategory(String newCategory) async {
@@ -101,6 +144,7 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -119,9 +163,16 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
                   onPressed: getImage,
                   child: Text(_image == null ? 'Add Photo' : 'Change Photo'),
                 ),
-                TextField(
+                TextFormField(
                   controller: _itemNameController,
-                  decoration: const InputDecoration(labelText: 'Item Name'),
+                  decoration: InputDecoration(
+                    labelText: 'Item Name',
+                    hintText: 'Enter item name',
+                    suffixIcon: _itemNameController.text.isEmpty
+                        ? const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        : const Icon(Icons.check, color: Colors.green),  // Check icon if not empty
+                  ),
+                  validator: _validateItemName,
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,73 +266,108 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
                     ],
                   ],
                 ),
-                TextField(
+                TextFormField(
                   controller: _priceController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Price',
                     prefixText: 'RM ', // Add prefix text
+                    hintText: 'Enter Item Price',
+                    suffixIcon: _priceController.text.isEmpty
+                        ?  const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                        :  const Icon(Icons.check, color: Colors.green),  // Check icon if not empty
                   ),
+                  validator: _validatePrice,
                 ),
-                TextField(
+                TextFormField(
                   controller: _durationToCookController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Duration to Cook',
                     suffixText: ' Minutes',
+                    suffixIcon: _durationToCookController.text.isEmpty
+                      ?  const Icon(Icons.error, color: Colors.red)  // Error icon if empty
+                      :  const Icon(Icons.check, color: Colors.green),  // Check icon if not empty
                   ),
+                  validator: _validateDuration,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: seller == null ? null : () async {
-                    var newCategory = _itemCategoryController.text.trim();
-                    if (newCategory.isNotEmpty && !_categories.contains(newCategory)) {
-                      addCustomCategory(newCategory);
-                      _selectedCategory = newCategory;// Add the custom category
-                    }
 
-                    String? itemPhotoUrl;
+                    final itemName = _itemNameController.text.trim();
+                    final price = _priceController.text.trim();
+                    final duration = _durationToCookController.text.trim();
+                    final category = _selectedCategory ?? '';
 
-                    if (_image != null) {
-                      itemPhotoUrl = await uploadFile(_image!);
-                    }
-
-                    MenuItem newMenuItem = MenuItem(
-                      id: null,
-                      sellerID: seller.id, // Use the seller ID from the provider
-                      itemPhoto: itemPhotoUrl ?? '',
-                      itemName: _itemNameController.text.trim(),
-                      //itemCategory: _itemCategoryController.text.trim(),
-                      itemCategory: _selectedCategory ?? '',
-                      price: double.parse(_priceController.text),
-                      durationToCook: _durationToCookController.text.trim(),
-                      availability: true,
-                    );
-
-                    await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
-                      newMenuItem = MenuItem(
-                        id: docRef.id,
-                        sellerID: newMenuItem.sellerID,
-                        itemPhoto: newMenuItem.itemPhoto,
-                        itemName: newMenuItem.itemName,
-                        itemCategory: newMenuItem.itemCategory,
-                        price: newMenuItem.price,
-                        durationToCook: newMenuItem.durationToCook,
-                        availability: newMenuItem.availability,
+                    if (itemName.isEmpty || price.isEmpty || duration.isEmpty || category.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill all the required fields.'),
+                          duration: Duration(seconds: 3),
+                        ),
                       );
-                      Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
-                    });
+                      return;
+                    }
 
-                    // Show a SnackBar to notify the user
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Item added successfully'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                    // Navigate back to the previous page
-                    Navigator.pop(context);
+                    try {
+                      var newCategory = _itemCategoryController.text.trim();
+                      if (newCategory.isNotEmpty && !_categories.contains(newCategory)) {
+                        addCustomCategory(newCategory);
+                        _selectedCategory = newCategory;// Add the custom category
+                      }
+
+                      String? itemPhotoUrl;
+
+                      if (_image != null) {
+                        itemPhotoUrl = await uploadFile(_image!);
+                      }
+
+                      MenuItem newMenuItem = MenuItem(
+                        id: null,
+                        sellerID: seller.id, // Use the seller ID from the provider
+                        itemPhoto: itemPhotoUrl ?? '',
+                        itemName: _itemNameController.text.trim(),
+                        //itemCategory: _itemCategoryController.text.trim(),
+                        itemCategory: _selectedCategory ?? '',
+                        price: double.parse(_priceController.text),
+                        durationToCook: _durationToCookController.text.trim(),
+                        availability: true,
+                      );
+
+                      await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
+                        newMenuItem = MenuItem(
+                          id: docRef.id,
+                          sellerID: newMenuItem.sellerID,
+                          itemPhoto: newMenuItem.itemPhoto,
+                          itemName: newMenuItem.itemName,
+                          itemCategory: newMenuItem.itemCategory,
+                          price: newMenuItem.price,
+                          durationToCook: newMenuItem.durationToCook,
+                          availability: newMenuItem.availability,
+                        );
+                        Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
+                      });
+
+                      // Show a SnackBar to notify the user
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Item added successfully'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      // Navigate back to the previous page
+                      Navigator.pop(context);
+                    } catch (e) {
+                      // Handle any other errors
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Add menu item failed: ${e.toString()}'),
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                   child: const Text('Add Item'),
                 ),

@@ -262,42 +262,68 @@ class UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (_selectedCategory == 'Custom' && _itemCategoryController.text.trim().isNotEmpty) {
-                    await addCustomCategory(_itemCategoryController.text.trim());
-                    _selectedCategory = _itemCategoryController.text.trim();
+
+                  final itemName = _itemNameController.text.trim();
+                  final price = _priceController.text.trim();
+                  final duration = _durationToCookController.text.trim();
+                  final category = _selectedCategory ?? '';
+
+                  if (itemName.isEmpty || price.isEmpty || duration.isEmpty || category.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill all the required fields.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
                   }
 
-                  String? itemPhotoUrl;
-                  if (_image != null) {
-                    itemPhotoUrl = await uploadFile(_image!);
+                  try {
+                    if (_selectedCategory == 'Custom' && _itemCategoryController.text.trim().isNotEmpty) {
+                      await addCustomCategory(_itemCategoryController.text.trim());
+                      _selectedCategory = _itemCategoryController.text.trim();
+                    }
+
+                    String? itemPhotoUrl;
+                    if (_image != null) {
+                      itemPhotoUrl = await uploadFile(_image!);
+                    }
+                    MenuItem updatedMenuItem = MenuItem(
+                      id: widget.menuItem.id,
+                      sellerID: widget.menuItem.sellerID,
+                      itemPhoto: itemPhotoUrl ?? widget.menuItem.itemPhoto,
+                      itemName: _itemNameController.text.trim(),
+                      itemCategory: _selectedCategory!,
+                      price: double.parse(_priceController.text),
+                      durationToCook: _durationToCookController.text.trim(),
+                      availability: widget.menuItem.availability,
+                    );
+
+                    await FirebaseFirestore.instance.collection('menuItems').doc(widget.menuItem.id).update(updatedMenuItem.toMap());
+
+                    if (!context.mounted) return;
+                    Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(updatedMenuItem);
+
+                    // Show a SnackBar to notify the user
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Item updated successfully '),
+                        duration: Duration(seconds: 2), // Adjust duration as needed
+                      ),
+                    );
+
+                    // Navigate back to the previous page
+                    Navigator.pop(context);
+                  } catch (e) {
+                    // Handle any other errors
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Add menu item failed: ${e.toString()}'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
                   }
-                  MenuItem updatedMenuItem = MenuItem(
-                    id: widget.menuItem.id,
-                    sellerID: widget.menuItem.sellerID,
-                    itemPhoto: itemPhotoUrl ?? widget.menuItem.itemPhoto,
-                    itemName: _itemNameController.text.trim(),
-                    itemCategory: _selectedCategory!,
-                    price: double.parse(_priceController.text),
-                    durationToCook: _durationToCookController.text.trim(),
-                    availability: widget.menuItem.availability,
-                  );
-
-                  await FirebaseFirestore.instance.collection('menuItems').doc(widget.menuItem.id).update(updatedMenuItem.toMap());
-
-                  if (!context.mounted) return;
-                  Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(updatedMenuItem);
-
-                  // Show a SnackBar to notify the user
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Item updated successfully '),
-                      duration: Duration(seconds: 2), // Adjust duration as needed
-                    ),
-                  );
-
-                  // Navigate back to the previous page
-                  Navigator.pop(context);
                 },
                 child: const Text('Update Item'),
               ),
