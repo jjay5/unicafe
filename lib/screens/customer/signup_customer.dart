@@ -300,11 +300,29 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                 ElevatedButton(
                   child: const Text('Sign Up'),
                   onPressed: () async {
+
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text.trim();
+                    final name = _nameController.text.trim();
+                    final phone = _phoneController.text.trim();
+
+                    if (email.isEmpty || password.isEmpty || name.isEmpty || phone.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill all the required fields.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      return;
+                    }
+
                     try {
                       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
                         email: _emailController.text.trim(),
                         password: _passwordController.text.trim(),
                       );
+
+                      //Create a Customer instance
                       Customer newCustomer = Customer(
                         id: userCredential.user!.uid,
                         name: _nameController.text.trim(),
@@ -312,6 +330,7 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                         email: _emailController.text.trim(),
                       );
 
+                      // Add the Customer details in Firestore
                       await _firestore.collection('customers').doc(userCredential.user!.uid).set(newCustomer.toMap());
 
                       // Notify user and navigate to login page
@@ -322,30 +341,37 @@ class SignUpCustomerPageState extends State<SignUpCustomerPage> {
                           duration: Duration(seconds: 3),
                         ),
                       );
+
                       // After successful signup
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const LoginPage()),
                       );
 
+                    } on FirebaseAuthException catch (e) {
+                      if (e.code == 'email-already-in-use') {
+                        // Notify user that the email is already registered
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('This email is already registered. Please use a different email or log in.'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      } else {
+                        // Handle other errors
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Signup failed: ${e.message}'),
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     } catch (e) {
+                      // Handle any other errors
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('FAILEDDDDDDDD'),
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Error'),
-                          content: Text('Please fill all the requiredment'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('OK'),
-                            ),
-                          ],
+                        SnackBar(
+                          content: Text('Signup failed: ${e.toString()}'),
+                          duration: const Duration(seconds: 3),
                         ),
                       );
                     }

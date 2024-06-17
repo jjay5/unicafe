@@ -333,16 +333,32 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
                 child: const Text('Sign Up'),
                 onPressed: () async {
 
+                  final email = _emailController.text.trim();
+                  final password = _passwordController.text.trim();
+                  final stallName = _stallNameController.text.trim();
+                  final stallLocation = _selectedLocation ?? '';
+                  final phone = _phoneController.text.trim();
+
+                  if (email.isEmpty || password.isEmpty || stallName.isEmpty || stallLocation.isEmpty || phone.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill all the required fields.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
                     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
                       email: _emailController.text.trim(),
                       password: _passwordController.text.trim(),
                     );
 
-                    // Create a Customer instance
+                    // Create a Seller instance
                     Seller newSeller = Seller(
                       id: userCredential.user!.uid, // Firestore generates the UID
                       stallName: _stallNameController.text.trim(),
-                      //stallLocation: _stallLocationController.text.trim(),
                       stallLocation: _selectedLocation ?? '',
                       phone: _phoneController.text.trim(),
                       email: _emailController.text.trim(),
@@ -350,8 +366,6 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
 
                     // Add the Seller details in Firestore
                     await _firestore.collection('sellers').doc(userCredential.user!.uid).set(newSeller.toMap());
-
-
 
                     // Notify user and navigate to login page
                     if (!context.mounted) return;
@@ -361,16 +375,42 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
                         duration: Duration(seconds: 3),
                       ),
                     );
+
                     // After successful signup
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginPage()),
                     );
-
                     // Call the function to create a default pickup schedule
-
                     await createDefaultPickupSchedule(userCredential.user!.uid, context);
+                  }on FirebaseAuthException catch (e) {
+                    if (e.code == 'email-already-in-use') {
+                      // Notify user that the email is already registered
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('This email is already registered. Please use a different email or log in.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    } else {
+                      // Handle other errors
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Signup failed: ${e.message}'),
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // Handle any other errors
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Signup failed: ${e.toString()}'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
                   }
+                }
               ),
             ],
           ),
