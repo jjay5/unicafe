@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:unicafe/models/menu_item.dart';
 import 'package:unicafe/models/seller.dart';
-import 'package:unicafe/screens/seller/add_menu.dart';
 import 'package:unicafe/screens/seller/update_menu.dart';
 
 class MenuDelistPage extends StatefulWidget {
@@ -68,7 +67,6 @@ class MenuDelistPageState extends State<MenuDelistPage> {
                     ),
                   ),
                 ),
-
 
                 title: Text(menuItem.itemName),
                 subtitle: Text(menuItem.itemCategory),
@@ -144,17 +142,6 @@ class MenuDelistPageState extends State<MenuDelistPage> {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Action to navigate to the add new item page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddMenuItemPage()), // Adjust this to your actual "Add New Item" page
-          );
-        },
-        tooltip: 'Add New Item',
-        child: const Icon(Icons.add),
       ),
     );
   }
