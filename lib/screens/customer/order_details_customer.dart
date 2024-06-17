@@ -37,7 +37,7 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
               ),
               Text('Order ID: ${widget.order.id}'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 20),
               FutureBuilder<Map<String, String>>(
                 future: widget.order.getSellerInfo(),
                 builder: (context, snapshot) {
@@ -48,32 +48,22 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Seller Stall Name: ',
+                            'Order At: ',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16.0),
                           ),
-                          Text(
-                            sellerInfo['stallName'] ?? 'N/A',
-                            style: const TextStyle(fontSize: 16.0),
+                          Row(
+                            children: [
+                              Text(sellerInfo['stallName'] ?? 'N/A'),
+                              Text(', ${sellerInfo['stallLocation'] ?? 'N/A'}'),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Stall Location: ',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16.0),
-                          ),
-                          Text(
-                            sellerInfo['stallLocation'] ?? 'N/A',
-                            style: const TextStyle(fontSize: 16.0),
-                          ),
-                          const SizedBox(height: 8),
                         ],
                       );
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error: ${snapshot.error}',
-                        style: const TextStyle(fontWeight: FontWeight.bold,
-                            fontSize: 16.0),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                       );
                     }
                   }
@@ -82,7 +72,7 @@ class OrderDetailPageState extends State<OrderDetailPage> {
               ),
 
               const SizedBox(height: 20),
-              const Text('Items:',
+              const Text('Order Summary:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
               ),
               StreamBuilder<List<OrderItem>>(
@@ -95,14 +85,73 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                     return Text('Error: ${snapshot.error}');
                   }
                   final orderItems = snapshot.data ?? [];
+
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: orderItems
-                        .map((item) =>
-                        Text(
-                          '${item.quantity}x ${item.itemName} \n ${item.notes}',
-                        ))
-                        .toList(),
+                    children: [
+                      ...orderItems.map((item) {
+                        return ListTile(
+                          leading: item.menuItem.itemPhoto != null && item.menuItem.itemPhoto!.isNotEmpty
+                              ? Container(
+                            width: 100.0,
+                            height: 100.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                fit: BoxFit.contain,
+                                image: NetworkImage(item.menuItem.itemPhoto!),
+                              ),
+                            ),
+                          )
+                              : Container(
+                            width: 100.0,
+                            height: 100.0,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                fit: BoxFit.contain,
+                                image: AssetImage('assets/images/default_image.png'),
+                              ),
+                            ),
+                          ),
+                          title: Text(item.itemName),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Notes: ${item.notes}'),
+                                  Text('RM ${item.totalPrice.toDouble().toStringAsFixed(2)}'),
+                                ],
+                              ),
+                              Text('Quantity: ${item.quantity}'),
+                            ],
+                          ),
+                        );
+                      }),
+                      const Divider(thickness: 2.0),
+                      // Add a summary section
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  'RM ${orderItems.fold(0.0, (sum, item) => sum + item.totalPrice).toDouble().toStringAsFixed(2)}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -118,14 +167,12 @@ class OrderDetailPageState extends State<OrderDetailPage> {
               const Text('Pick Up Time:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
               Text(widget.order.pickupTime),
-
               const SizedBox(height: 20),
               const Text(
                 'Order Status:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Text(widget.order.orderStatus),
-
             ],
           ),
         ),
