@@ -64,7 +64,7 @@ class Dashboard extends StatelessWidget {
               _buildCard(
                 title: 'Completed Orders',
                 content: _buildOrderInfoTile(context, orderService, seller.id, 'completed'),
-                onTap: () => onSelectPage(2),
+                onTap: (){},
               ),
               const SizedBox(height: 20),
               _buildCard(
@@ -75,7 +75,6 @@ class Dashboard extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (context) => SellerFeedbackPage(sellerId: seller.id)),
                   );
-
                 },
               ),
             ],

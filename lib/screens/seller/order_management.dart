@@ -193,84 +193,64 @@ class OrderListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: () {
-          // Navigate to order detail page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderDetailPage(order: order),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Order details
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      '${order.id}',
-                      //textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        decoration: TextDecoration.underline, // Underlined like a hyperlink
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child:  Text(order.pickupTime),
-                    /*
-                    child: StreamBuilder<List<OrderItem>>(
-                      stream: order.getOrderItems(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        final orderItems = snapshot.data ?? [];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: orderItems
-                              .map((item) => Text(
-                            '${item.quantity}x ${item.menuItem.itemName} \n${item.notes}\n',
-                          ))
-                              .toList(),
-                        );
-                      },
-                    ),*/
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: DropdownButton<String>(
-                      value: order.orderStatus,
-                      onChanged: (newValue) {
-                        // Update order status
-                        _updateOrderStatus(context, order, newValue!);
-                      },
-                      items: ['pending', 'preparing', 'ready to pickup', 'completed']
-                          .map<DropdownMenuItem<String>>((status) {
-                        return DropdownMenuItem<String>(
-                          value: status,
-                          child: Text(status),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-              // Divider
-              const Divider(),
-            ],
+      onTap: () {
+        // Navigate to order detail page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailPage(order: order),
           ),
-        )
+        );
+      },
+
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Order details
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    '${order.id}',
+                    //textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      decoration: TextDecoration.underline, // Underlined like a hyperlink
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                ),
+                Expanded(
+                  flex: 2,
+                  child:  Text(order.pickupTime),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButton<String>(
+                    value: order.orderStatus,
+                    onChanged: (newValue) {
+                      // Update order status
+                      _updateOrderStatus(context, order, newValue!);
+                    },
+                    items: ['pending', 'preparing', 'ready to pickup', 'completed']
+                        .map<DropdownMenuItem<String>>((status) {
+                      return DropdownMenuItem<String>(
+                        value: status,
+                        child: Text(status),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            // Divider
+            const Divider(),
+          ],
+        ),
+      )
     );
   }
 

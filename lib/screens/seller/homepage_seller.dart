@@ -36,13 +36,11 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-
   void navigateToPage(int index) {
     setState(() {
       _selectedIndex = index; // This changes the current page index
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +48,7 @@ class HomePageState extends State<HomePage> {
     final sellerID = sellerProvider.seller?.id ?? ''; // Get seller ID from SellerProvider
 
     List<Widget> pageOptions = <Widget>[
-       Dashboard(onSelectPage: navigateToPage),
-
+      Dashboard(onSelectPage: navigateToPage),
       const MenuManagementPage(),
       OrderManagementPage(sellerID: sellerID),
       ModifyPickupSlotPage(seller: Provider.of<SellerProvider>(context, listen: false).seller!),

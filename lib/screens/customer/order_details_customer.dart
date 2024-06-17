@@ -77,7 +77,6 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                       );
                     }
                   }
-
                   return const CircularProgressIndicator();
                 },
               ),
