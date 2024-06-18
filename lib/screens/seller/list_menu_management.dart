@@ -26,6 +26,7 @@ class MenuListPageState extends State<MenuListPage> {
             .collection('menuItems')
             .where('sellerID', isEqualTo: sellerID)
             .where('availability', isEqualTo: true) // Only get available items
+            .where('isDeleted', isEqualTo: false)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -174,6 +175,7 @@ class MenuListPageState extends State<MenuListPage> {
   }
 
   Future<void> deleteMenuItem(String id) async {
-    await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
+    //await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
+    await FirebaseFirestore.instance.collection('menuItems').doc(id).update({'isDeleted': true});
   }
 }

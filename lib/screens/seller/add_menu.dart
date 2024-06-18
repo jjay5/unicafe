@@ -333,6 +333,7 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
                         price: double.parse(_priceController.text),
                         durationToCook: _durationToCookController.text.trim(),
                         availability: true,
+                        isDeleted: false,
                       );
 
                       await FirebaseFirestore.instance.collection('menuItems').add(newMenuItem.toMap()).then((docRef) {
@@ -345,6 +346,7 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
                           price: newMenuItem.price,
                           durationToCook: newMenuItem.durationToCook,
                           availability: newMenuItem.availability,
+                          isDeleted: newMenuItem.isDeleted,
                         );
                         Provider.of<MenuProvider>(context, listen: false).addOrUpdateMenuItem(newMenuItem);
                       });

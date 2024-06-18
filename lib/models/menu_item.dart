@@ -10,6 +10,7 @@ class MenuItem {
   final double price;
   final String durationToCook;
   final bool availability;
+  final bool isDeleted;
 
   MenuItem({
     this.id,
@@ -20,6 +21,7 @@ class MenuItem {
     required this.price,
     required this.durationToCook,
     this.availability = true,
+    this.isDeleted = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,7 +32,8 @@ class MenuItem {
       'itemCategory': itemCategory,
       'price': price,
       'durationToCook' : durationToCook,
-      'availability' : availability
+      'availability' : availability,
+      'isDeleted' : isDeleted,
     };
   }
 
@@ -45,6 +48,7 @@ class MenuItem {
       price: (data['price'] ?? 0).toDouble(), // Convert to double
       durationToCook: data['durationToCook'] ?? '',
       availability: data['availability'] ?? true,
+      isDeleted: data['isDeleted'] ?? false
     );
   }
 
@@ -58,6 +62,7 @@ class MenuItem {
       price: (map['price'] ?? 0).toDouble(), // Convert to double
       durationToCook: map['durationToCook'] ?? '',
       availability: map['availability'] ?? true,
+      isDeleted: map['isDeleted'] ?? false,
     );
   }
 }
@@ -87,7 +92,7 @@ class MenuProvider extends ChangeNotifier {
   }
 
   // Updates the availability of a specific menu item
-  void setMenuItemAvailability(String menuItemId, bool isAvailable) {
+  void setMenuItemAvailability(String menuItemId, bool isAvailable, bool isDeleted) {
     int index = _menuItems.indexWhere((item) => item.id == menuItemId);
     if (index != -1) {
       _menuItems[index] = MenuItem(
@@ -99,6 +104,7 @@ class MenuProvider extends ChangeNotifier {
         price: _menuItems[index].price,
         durationToCook: _menuItems[index].durationToCook,
         availability: isAvailable,
+        isDeleted: isDeleted,
       );
       notifyListeners();
     }
