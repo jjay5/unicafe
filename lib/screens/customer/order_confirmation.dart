@@ -254,8 +254,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         title: const Text('Confirm Your Order'),
       ),
       body: _cartItems.isEmpty
-        ? const Center(child: CircularProgressIndicator())
-        : Column(
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
@@ -430,7 +430,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                     children: _cartItems.map((item) {
                       return ListTile(
                         leading: item.item.itemPhoto != null && item.item.itemPhoto!.isNotEmpty
-                          ? Container(
+                        ? Container(
                           width: 100.0,
                           height: 100.0,
                           decoration: BoxDecoration(
@@ -441,14 +441,14 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                             ),
                           ),
                         )
-                          : Container(
-                            width: 100.0,
-                            height: 100.0,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              image: DecorationImage(
-                                fit: BoxFit.contain,
-                                image: AssetImage('assets/images/default_image.png'),
+                        : Container(
+                          width: 100.0,
+                          height: 100.0,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              fit: BoxFit.contain,
+                              image: AssetImage('assets/images/default_image.png'),
                             ),
                           ),
                         ),
@@ -510,7 +510,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold), // Adjust text color as needed
               ),
               ElevatedButton(
-
                 child: const Text('Place Order'),
                 onPressed: () async {
 
