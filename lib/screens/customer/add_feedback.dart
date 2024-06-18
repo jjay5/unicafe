@@ -171,7 +171,6 @@ class FeedbackPageState extends State<FeedbackPage> {
       );
 
       // After successful rate the order
-
       Navigator.push(
         context,
         MaterialPageRoute(
