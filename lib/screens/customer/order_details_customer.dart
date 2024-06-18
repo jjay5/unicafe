@@ -117,14 +117,15 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text('RM ${item.menuItem.price.toDouble().toStringAsFixed(2)}'),
+                              Text('Notes: ${item.notes}'),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Notes: ${item.notes}'),
+                                  Text('Quantity: ${item.quantity}'),
                                   Text('RM ${item.totalPrice.toDouble().toStringAsFixed(2)}'),
                                 ],
                               ),
-                              Text('Quantity: ${item.quantity}'),
                             ],
                           ),
                         );
@@ -139,7 +140,7 @@ class OrderDetailPageState extends State<OrderDetailPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  'Total:',
+                                  'TOTAL:',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 Text(
