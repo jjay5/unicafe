@@ -122,6 +122,19 @@ class CustomerOrdersPageState extends State<CustomerOrdersPage>{
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              child: Text(
+                                _getStatusMessage(orderStatus),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueAccent,
+                                ),
+                              ),
+                            ),
+                            const Divider(color: Colors.grey),
+                            const SizedBox(height: 8.0),
                             _buildOrderStatusIndicator(orderStatus),
                             const Divider(color: Colors.grey),
                             const SizedBox(height: 8.0),
@@ -136,12 +149,12 @@ class CustomerOrdersPageState extends State<CustomerOrdersPage>{
                               },
                               child: Text('Order ID: ${doc.id}',
                                 style: const TextStyle(
-                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
                             ),
-                            Text('Order ID: ${doc.id}'),
                             Text(
                               'Order Date: ${DateFormat('MMMM dd, yyyy \'at\' h:mm:ss a').format(data['orderDate'].toDate())}',
                             ),
@@ -220,8 +233,6 @@ class CustomerOrdersPageState extends State<CustomerOrdersPage>{
   }
 }
 
-
-
 Stream<QuerySnapshot> _getOrderStream(String customerId, String status) {
   CollectionReference orders = FirebaseFirestore.instance.collection('orders');
   Query query = orders.where('customerID', isEqualTo: customerId);
@@ -287,11 +298,29 @@ Stream<QuerySnapshot> _getOrderStream(String customerId, String status) {
                 style: TextStyle(
                   color: isCurrent ? Colors.black : Colors.transparent, // Hide text if not current
                   fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
+
             ],
           ),
         );
       }).toList(),
     );
+
   }
+
+String _getStatusMessage(String status) {
+  switch (status) {
+    case 'pending':
+      return 'Your order is pending';
+    case 'preparing':
+      return 'Your order is being prepared';
+    case 'ready to pickup':
+      return 'Please pick up your order';
+    case 'completed':
+      return 'Your order is completed';
+    default:
+      return '';
+  }
+}
