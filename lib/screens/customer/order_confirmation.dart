@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:unicafe/screens/customer/list_menu.dart';
 import 'package:unicafe/screens/customer/order_success.dart';
 
-
 class OrderConfirmationPage extends StatefulWidget {
   final Seller seller;
   final List<CartItem> cartItems;
@@ -29,7 +28,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   late List<CartItem> _cartItems;
   String? _selectedTime;
   final List<String> _timeSlots = [];
-  String? _selectedOption;
+  String? _selectedOptionPickup;
   String? _selectedOptionPayment;
   bool _showCardDetails = false; // Initially hidden
 
@@ -151,7 +150,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         orderDate: DateTime.now(),
         orderStatus: 'pending',
         totalAmount: _calculateTotal(),
-        paymentMethod: _selectedOption ?? '',
+        paymentMethod: _selectedOptionPickup ?? '',
         pickupMethod: _selectedOptionPayment ?? '',
         pickupTime: _selectedTime ?? '',
         sellerID: widget.seller.id,
@@ -266,14 +265,15 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text('Pickup at: ${widget.seller.stallName}, ${widget.seller.stallLocation}'),
+                    child: Text('PICKUP AT: ${widget.seller.stallName}, ${widget.seller.stallLocation}'),
                   ),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Pickup time: $_selectedTime'),
+                        Text('PICKUP TIME: $_selectedTime'),
                         InkWell(
                           onTap: () => _showPickupTimeSelection(context),
                           child: const Text(
@@ -287,20 +287,21 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Pickup Options: '),
+                        const Text('PICKUP OPTIONS: '),
                         Row(
                           children: [
                             Radio<String>(
                               value: 'Dine-in',
-                              groupValue: _selectedOption,
+                              groupValue: _selectedOptionPickup,
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedOption = value;
+                                  _selectedOptionPickup = value;
                                 });
                               },
                             ),
@@ -311,10 +312,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                           children: [
                             Radio<String>(
                               value: 'Take-away',
-                              groupValue: _selectedOption,
+                              groupValue: _selectedOptionPickup,
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedOption = value;
+                                  _selectedOptionPickup = value;
                                 });
                               },
                             ),
@@ -324,12 +325,13 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Payment method: '),
+                        const Text('PAYMENT METHOD: '),
                         Row(
                           children: [
                             Radio<String>(
@@ -361,47 +363,52 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                           ],
                         ),
                         if (_showCardDetails)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Card Number',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: TextEditingController(text: '4242 4242 4242 4242'), // Prefilled card number
+                                  decoration: const InputDecoration(
+                                    labelText: 'Card Number',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                  keyboardType: TextInputType.number,
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Expiration Date (MM/YY)',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(10),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: TextEditingController(text: '12/23'), // Prefilled expiration date
+                                  decoration: const InputDecoration(
+                                    labelText: 'Expiration Date (MM/YY)',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                  keyboardType: TextInputType.datetime,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'CVV',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(10),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: TextEditingController(text: '123'), // Prefilled CVV
+                                  decoration: const InputDecoration(
+                                    labelText: 'CVV',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                  keyboardType: TextInputType.number,
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Your Order:'),
+                        const Text('YOUR ORDER:'),
                         InkWell(
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -506,12 +513,46 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
                 child: const Text('Place Order'),
                 onPressed: () async {
+
+                  final pickup = _selectedOptionPickup ?? '';
+                  final payment = _selectedOptionPayment ?? '';
+
+                  if (pickup.isEmpty && payment.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select the pickup option and payment option.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (pickup.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select the pickup option.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (payment.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select the payment option.'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return;
+                  }
+
                   try{
                     _confirmOrder(context);
                   } catch (e){
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('FAILEDDDDDDDD'),
+                        content: Text('Place Order Failed'),
                         duration: Duration(seconds: 3),
                       ),
                     );
