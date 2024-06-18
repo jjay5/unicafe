@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unicafe/screens/customer/my_order.dart';
 
 class FeedbackPage extends StatefulWidget {
   final String orderId;
@@ -167,6 +168,15 @@ class FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Feedback submitted successfully!')),
+      );
+
+      // After successful rate the order
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CustomerOrdersPage(), // Pass Orders object to OrderDetailPage
+        ),
       );
 
       // Optionally, navigate back or clear fields
