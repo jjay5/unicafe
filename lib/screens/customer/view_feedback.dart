@@ -37,10 +37,7 @@ class ViewFeedbackPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Rating: ${feedbackData['rating']}',
-                  style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                ),
+                _buildStarRating(feedbackData['rating']?.toDouble() ?? 0.0),
                 const SizedBox(height: 8.0),
                 Text(
                   'Comment: ${feedbackData['comment']}',
@@ -56,6 +53,23 @@ class ViewFeedbackPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildStarRating(double rating) {
+    int wholePart = rating.floor();
+    bool hasHalfStar = (rating - wholePart) >= 0.5;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        if (index < wholePart) {
+          return const Icon(Icons.star, color: Colors.amber);
+        } else if (index == wholePart && hasHalfStar) {
+          return const Icon(Icons.star_half, color: Colors.amber);
+        } else {
+          return const Icon(Icons.star_border, color: Colors.amber);
+        }
+      }),
     );
   }
 }
