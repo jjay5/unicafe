@@ -39,6 +39,11 @@ class MenuDelistPageState extends State<MenuDelistPage> {
           final menuItems = snapshot.data!.docs
               .map((doc) => MenuItem.fromFirestore(doc))
               .toList();
+
+          if (menuItems.isEmpty) {
+            return const Center(child: Text('No Menu Items'));
+          }
+
           return ListView.builder(
             itemCount: menuItems.length,
             itemBuilder: (context, index) {
@@ -162,6 +167,7 @@ class MenuDelistPageState extends State<MenuDelistPage> {
   }
 
   Future<void> deleteMenuItem(String id) async {
-    await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
+    //await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
+    await FirebaseFirestore.instance.collection('menuItems').doc(id).update({'isDeleted': true});
   }
 }

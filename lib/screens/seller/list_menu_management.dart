@@ -38,6 +38,11 @@ class MenuListPageState extends State<MenuListPage> {
           final menuItems = snapshot.data!.docs
               .map((doc) => MenuItem.fromFirestore(doc))
               .toList();
+
+          if (menuItems.isEmpty) {
+            return const Center(child: Text('No Menu Items'));
+          }
+
           return  ListView.separated(
             itemCount: menuItems.length,
             itemBuilder: (context, index) {
@@ -66,7 +71,6 @@ class MenuListPageState extends State<MenuListPage> {
                     ),
                   ),
                 ),
-
 
                 title: Text(menuItem.itemName),
                 subtitle: Text(menuItem.itemCategory),

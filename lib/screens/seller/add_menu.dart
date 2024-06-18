@@ -59,14 +59,10 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
     _itemNameController.removeListener(_updateValidation);
     _priceController.removeListener(_updateValidation);
     _durationToCookController.removeListener(_updateValidation);
-    //_passwordController.removeListener(_updateValidation);
-    //_reEnterPasswordController.removeListener(_updateValidation);
 
     _itemNameController.dispose();
     _priceController.dispose();
     _durationToCookController.dispose();
-    //_passwordController.dispose();
-    //_reEnterPasswordController.dispose();
 
     super.dispose();
   }
