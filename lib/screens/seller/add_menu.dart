@@ -36,6 +36,9 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
     super.initState();
     loadCategories();
     _itemNameController.addListener(_updateValidation);
+    _priceController.addListener(_updateValidation);
+    _durationToCookController.addListener(_updateValidation);
+
   }
 
   void loadCategories() async {
