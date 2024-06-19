@@ -36,6 +36,7 @@ class MenuPageState extends State<MenuPage> {
         .collection('menuItems')
         .where('sellerID', isEqualTo: widget.sellerId)
         .where('availability', isEqualTo: true)
+        .where('isDeleted', isEqualTo: false)
         .get();
 
     Map<String, List<MenuItem>> menuItemsByCategory = {};

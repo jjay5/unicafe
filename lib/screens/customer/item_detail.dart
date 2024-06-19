@@ -33,7 +33,13 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             _buildImageDisplay(),
             ListTile(
               title: Text(widget.menuItem.itemName),
-              subtitle: Text('RM${widget.menuItem.price.toStringAsFixed(2)}'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('RM${widget.menuItem.price.toStringAsFixed(2)}'),
+                  Text('Duration to prepare: ${widget.menuItem.durationToCook} minutes'),  // Add your additional text here
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
