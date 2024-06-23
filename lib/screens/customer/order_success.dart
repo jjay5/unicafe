@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unicafe/screens/customer/my_order.dart';
+import 'package:unicafe/screens/customer/homepage_customer.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   const OrderSuccessPage({super.key});
@@ -30,9 +30,10 @@ class OrderSuccessPage extends StatelessWidget {
             const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
-
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) =>  const CustomerOrdersPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const HomePage(initialIndex: 1), // Set the index to 1 for CustomerOrdersPage
+                  ),
                 );
               },
               child: const Text('View My Order'),
