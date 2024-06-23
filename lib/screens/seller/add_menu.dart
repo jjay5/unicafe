@@ -327,7 +327,6 @@ class AddMenuItemPageState extends State<AddMenuItemPage> {
                         sellerID: seller.id, // Use the seller ID from the provider
                         itemPhoto: itemPhotoUrl ?? '',
                         itemName: _itemNameController.text.trim(),
-                        //itemCategory: _itemCategoryController.text.trim(),
                         itemCategory: _selectedCategory ?? '',
                         price: double.parse(_priceController.text),
                         durationToCook: _durationToCookController.text.trim(),
