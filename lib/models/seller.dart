@@ -62,4 +62,3 @@ class SellerProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

@@ -12,7 +12,7 @@ class CartItem {
     required this.quantity,
     String? note,
     required this.totalItemPrice,
-  }) : note = note ?? '-'; // Use "None" if note is null
+  }) : note = note ?? '-';
 }
 
 class CartProvider with ChangeNotifier {
@@ -22,11 +22,11 @@ class CartProvider with ChangeNotifier {
   List<CartItem> get items => List.unmodifiable(_items);
 
   void addToCart(MenuItem item, int quantity, String? note) {
-    // Normalize note by considering null or empty notes as 'None'
+
     final normalizedNote = note?.isEmpty ?? true ? '-' : note;
 
     // Find index based on item ID and note
-    // For items without notes ('None'), this finds any matching item
+    // For items without notes, this finds any matching item
     // For items with notes, this looks for an exact match
     int index = _items.indexWhere((cartItem) =>
     cartItem.item.id == item.id &&
@@ -54,7 +54,6 @@ class CartProvider with ChangeNotifier {
         totalItemPrice: totalItemPrice, // Assign the calculated total price
       ));
     }
-
     notifyListeners();
   }
 
@@ -72,7 +71,6 @@ class CartProvider with ChangeNotifier {
         note: existingItem.note,
         totalItemPrice: updatedTotalPrice,
       );
-
       notifyListeners();
     }
   }

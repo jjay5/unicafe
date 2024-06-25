@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:unicafe/models/menu_item.dart';
 
 class Orders {
@@ -82,17 +83,11 @@ class Orders {
                 .collection('menuItems')
                 .doc(menuItemId)
                 .get();
-            // Assume that menuItemDoc exists and contains correct data
+
             MenuItem menuItem = MenuItem.fromFirestore(menuItemDoc);
             OrderItem orderItem = OrderItem.fromFirestore(doc, menuItem);
             orderItems.add(orderItem);
-          } else {
-            // Handle the case where menuItemId is null
-            // E.g., log an error or skip this particular OrderItem
           }
-        } else {
-          // Handle the case where data is not a map
-          // This might involve logging or throwing an error
         }
       }
       return orderItems;
@@ -112,7 +107,9 @@ class Orders {
         return 'Unknown Customer';
       }
     } catch (e) {
-      print('Error fetching customer name: $e');
+      if (kDebugMode) {
+        print('Error fetching customer name: $e');
+      }
       return 'Failed to fetch';
     }
   }
@@ -138,7 +135,9 @@ class Orders {
         };
       }
     } catch (e) {
-      print('Error fetching seller info: $e');
+      if (kDebugMode) {
+        print('Error fetching seller info: $e');
+      }
       return {
         'stallName': 'Failed to fetch',
         'stallLocation': 'Failed to fetch',
@@ -177,7 +176,6 @@ class OrderItem {
     required this.totalPrice,
     required this.notes,
     required this.menuItem, // Require MenuItem object
-
     required this.itemName,
   });
 
