@@ -20,14 +20,12 @@ class MenuDelistPageState extends State<MenuDelistPage> {
     final String? sellerID = seller?.id; // Get the current seller's ID
 
     return Scaffold(
-      /* appBar: AppBar(
-        title: Text('Menu Management'),
-      ),*/
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('menuItems')
             .where('sellerID', isEqualTo: sellerID)
             .where('availability', isEqualTo: false) // Only get available items
+            .where('isDeleted', isEqualTo: false)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -51,12 +49,12 @@ class MenuDelistPageState extends State<MenuDelistPage> {
               return ListTile(
                 leading: menuItem.itemPhoto != null && menuItem.itemPhoto!.isNotEmpty
                     ? Container(
-                  width: 50.0, // Set your desired width
-                  height: 50.0, // Set your desired height to make it square
+                  width: 50.0,
+                  height: 50.0,
                   decoration: BoxDecoration(
-                    shape: BoxShape.rectangle, // This is optional, or you can use BoxShape.circle for circles
+                    shape: BoxShape.rectangle,
                     image: DecorationImage(
-                      fit: BoxFit.cover, // This will fill the bounds of the container without changing the aspect ratio of the image
+                      fit: BoxFit.cover,
                       image: NetworkImage(menuItem.itemPhoto!),
                     ),
                   ),

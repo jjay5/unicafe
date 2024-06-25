@@ -62,7 +62,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                     'Pending',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12, // Adjust the font size as needed
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -71,7 +71,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                     'Preparing',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12, // Adjust the font size as needed
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -81,7 +81,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12, // Adjust the font size as needed
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -90,7 +90,7 @@ class OrderManagementPageState extends State<OrderManagementPage> {
                     'Completed',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12, // Adjust the font size as needed
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -258,7 +258,6 @@ class OrderListItem extends StatelessWidget {
 
     order.updateOrderStatus(newStatus);
 
-    // Show a success message or handle errors as needed
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Order status updated successfully!')),
     );

@@ -10,7 +10,6 @@ class OrderSuccessPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Order Successful'),
         automaticallyImplyLeading: false,
-
       ),
       body: Center(
         child: Column(
@@ -32,7 +31,7 @@ class OrderSuccessPage extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => const HomePage(initialIndex: 1), // Set the index to 1 for CustomerOrdersPage
+                    builder: (context) => const HomePage(initialIndex: 1),
                   ),
                 );
               },

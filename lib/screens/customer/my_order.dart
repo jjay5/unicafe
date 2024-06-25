@@ -182,39 +182,38 @@ class CustomerOrdersPageState extends State<CustomerOrdersPage>{
                               ],
                             ),
                             if (isCompleted)
-                              if (isCompleted)
-                                FutureBuilder<bool>(
-                                  future: hasReviewedOrder(doc.id),
-                                  builder: (context, reviewSnapshot) {
-                                    if (reviewSnapshot.connectionState == ConnectionState.waiting) {
-                                      return const CircularProgressIndicator();
-                                    }
-                                    if (reviewSnapshot.hasError) {
-                                      return const Text('Error loading review status');
-                                    }
-                                    bool hasReviewed = reviewSnapshot.data ?? false;
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => hasReviewed
-                                                    ? ViewFeedbackPage(orderId: doc.id)
-                                                    : FeedbackPage(orderId: doc.id)
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          hasReviewed ? 'My Reviews' : 'Rate this order',
-                                          style: const TextStyle(
-                                            color: Colors.blue,
-                                            decoration: TextDecoration.underline,
-                                          ),
+                            FutureBuilder<bool>(
+                              future: hasReviewedOrder(doc.id),
+                              builder: (context, reviewSnapshot) {
+                                if (reviewSnapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (reviewSnapshot.hasError) {
+                                  return const Text('Error loading review status');
+                                }
+                                bool hasReviewed = reviewSnapshot.data ?? false;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => hasReviewed
+                                                ? ViewFeedbackPage(orderId: doc.id)
+                                                : FeedbackPage(orderId: doc.id)
                                         ),
+                                      );
+                                    },
+                                    child: Text(
+                                      hasReviewed ? 'My Reviews' : 'Rate this order',
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
                                       ),
-                                    );
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                           ],
@@ -228,7 +227,6 @@ class CustomerOrdersPageState extends State<CustomerOrdersPage>{
           ),)
         ],
       ),
-      
     );
   }
 }
@@ -301,13 +299,11 @@ Stream<QuerySnapshot> _getOrderStream(String customerId, String status) {
                   fontSize: 12,
                 ),
               ),
-
             ],
           ),
         );
       }).toList(),
     );
-
   }
 
 String _getStatusMessage(String status) {

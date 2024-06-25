@@ -17,10 +17,8 @@ class SignUpPage extends StatelessWidget {
             const Text(
               'SIGN UP',
               style: TextStyle(
-                fontSize: 28, // Adjust the font size as needed
+                fontSize: 28,
                 fontWeight: FontWeight.bold, // Make the text bold
-                //color: Colors.blue, // Change the text color
-                // You can add more text styles like fontFamily, fontStyle, etc. as needed
               ),
             ),
             const SizedBox(height: 30.0),

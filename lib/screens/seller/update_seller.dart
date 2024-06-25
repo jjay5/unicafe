@@ -31,19 +31,6 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
     _loadCurrentUser();
   }
 
-  /*_loadCurrentUser() async {
-    setState(() => _isLoading = true);
-    User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      var customerSnapshot = await _firestore.collection('sellers').doc(currentUser.uid).get();
-      Seller currentSeller = Seller.fromMap(customerSnapshot.data()!);
-      _stallNameController.text = currentSeller.stallName;
-      _stallLocationController.text = currentSeller.stallLocation;
-      _phoneController.text = currentSeller.phone;
-      _emailController.text = currentSeller.email;
-    }
-    setState(() => _isLoading = false);
-  }*/
   _loadCurrentUser() async {
     setState(() => _isLoading = true);
     User? currentUser = _auth.currentUser;
@@ -96,11 +83,6 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
               controller: _stallNameController,
               decoration: const InputDecoration(labelText: 'Stall Name'),
             ),
-            /*
-            TextField(
-              controller: _stallLocationController,
-              decoration: const InputDecoration(labelText: 'Stall Location'),
-            ),*/
             Column(
               children: <Widget>[
                 DropdownButtonFormField<String>(
@@ -136,22 +118,6 @@ class UpdateSellerPageState extends State<UpdateSellerPage> {
               enabled: false,
             ),
             const SizedBox(height: 20),
-            /*ElevatedButton(
-              child: const Text('Update'),
-              onPressed: () async {
-                setState(() => _isLoading = true);
-
-                // convert object to Map
-                await _firestore.collection('sellers').doc(_auth.currentUser!.uid).update({
-                  'stallName': _stallNameController.text.trim(),
-                  'stallLocation': _stallLocationController.text.trim(),
-                  'phone': _phoneController.text.trim(),
-                  // Email is not updated as it's assumed to be unchanged
-                });
-                setState(() => _isLoading = false);
-
-              },
-            ),*/
             ElevatedButton(
               child: const Text('Update'),
               onPressed: () async {

@@ -413,7 +413,7 @@ class SignUpSellerPageState extends State<SignUpSellerPage> {
                 }
               ),
             ],
-          ),
+           ),
           )
         )
       ),

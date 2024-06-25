@@ -76,10 +76,6 @@ class UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
     var fetchedCategories = snapshot.docs.map((doc) => doc.id).toList();
     setState(() {
       _categories = fetchedCategories;
-      // Ensure the current selected category is valid or reset it
-      /*if (!_categories.contains(_selectedCategory)) {
-        _selectedCategory = _categories.isNotEmpty ? _categories[0] : null;
-      }*/
     });
   }
 
@@ -218,7 +214,6 @@ class UpdateMenuItemPageState extends State<UpdateMenuItemPage> {
                                         if (kDebugMode) {
                                           print('Error deleting category: $e');
                                         }
-                                        // Handle error, show message to the user
                                       }
                                     }
                                   }

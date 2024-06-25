@@ -21,7 +21,7 @@ class OrderDetailPageState extends State<OrderDetailPage> {
         title: const Text('Order Details'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // Adjust the padding as needed
+        padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

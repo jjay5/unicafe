@@ -178,7 +178,6 @@ class FeedbackPageState extends State<FeedbackPage> {
         ),
       );
 
-      // Optionally, navigate back or clear fields
       setState(() {
         _rating = 0.0;
         _comment = '';

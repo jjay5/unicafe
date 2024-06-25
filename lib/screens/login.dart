@@ -35,7 +35,7 @@ class LoginPageState extends State<LoginPage> {
             const Text(
               'UNICAFE',
               style: TextStyle(
-                fontSize: 50, // Adjust the font size as needed
+                fontSize: 50,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -102,7 +102,6 @@ class LoginPageState extends State<LoginPage> {
                 style: TextStyle(
                   color: Colors.blue,
                   fontWeight: FontWeight.bold,
-                  //decoration: TextDecoration.underline,
                 ),
               ),
             ),

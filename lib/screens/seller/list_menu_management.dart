@@ -206,7 +206,6 @@ class MenuListPageState extends State<MenuListPage> {
   }
 
   Future<void> deleteMenuItem(String id) async {
-    //await FirebaseFirestore.instance.collection('menuItems').doc(id).delete();
     await FirebaseFirestore.instance.collection('menuItems').doc(id).update({'isDeleted': true});
   }
 }

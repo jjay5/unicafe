@@ -363,42 +363,42 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                           ],
                         ),
                         if (_showCardDetails)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  controller: TextEditingController(text: '4242 4242 4242 4242'), // Prefilled card number
-                                  decoration: const InputDecoration(
-                                    labelText: 'Card Number',
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
-                                  keyboardType: TextInputType.number,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0), // Add some vertical padding
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: TextEditingController(text: '4242 4242 4242 4242'), // Prefilled card number
+                                decoration: const InputDecoration(
+                                  labelText: 'Card Number',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: TextEditingController(text: '12/23'), // Prefilled expiration date
-                                  decoration: const InputDecoration(
-                                    labelText: 'Expiration Date (MM/YY)',
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
-                                  keyboardType: TextInputType.datetime,
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: TextEditingController(text: '12/23'), // Prefilled expiration date
+                                decoration: const InputDecoration(
+                                  labelText: 'Expiration Date (MM/YY)',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: TextEditingController(text: '123'), // Prefilled CVV
-                                  decoration: const InputDecoration(
-                                    labelText: 'CVV',
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
-                                  keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.datetime,
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: TextEditingController(text: '123'), // Prefilled CVV
+                                decoration: const InputDecoration(
+                                  labelText: 'CVV',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.all(10),
                                 ),
-                              ],
-                            ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -535,7 +535,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                     );
                     return;
                   }
-
                   if (payment.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -545,7 +544,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                     );
                     return;
                   }
-
                   try{
                     _confirmOrder(context);
                   } catch (e){
